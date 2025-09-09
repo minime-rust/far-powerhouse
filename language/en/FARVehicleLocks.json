@@ -1,0 +1,18 @@
+{
+  "NoVehiclesOwned": "You do not currently own any vehicles.",
+  "NotMountedDriver": "You must be sitting in the driver seat of a supported vehicle.",
+  "TypeLimitReached": "You have reached the maximum of {0} locked {1}(s).",
+  "ListLockedAndOwned": "{0} | in TC range: {1} | last rider: {2} | mounted: {3}",
+  "LockedNowOwnerAssigned": "Locked this {0}. You are now its owner.",
+  "UnlockedNow": "Unlocked this {0}. It is now public again.",
+  "HintCommandUsage": "Use <color=#55ff55>/vehicle lock</color> - lock the vehicle you are driving.\nUse <color=#55ff55>/vehicle unlock</color> - unlock the vehicle you are driving.\nUse <color=#55ff55>/vehicle list</color> - show your currently owned vehicles.",
+  "HintLockUnowned": "Use <color=#55ff55>/vehicle list</color> - show your currently owned vehicles.\nUse <color=#55ff55>/vehicle lock</color> in chat to make this {0} yours or team-only.",
+  "HintUnlockOwned": "Use <color=#55ff55>/vehicle list</color> - show your currently owned vehicles.\nUse <color=#55ff55>/vehicle unlock</color> in chat to make this {0} public again.",
+  "DeniedDriverSeat": "This {0} is <color=#ff5555>locked</color> by {1}.",
+  "DeniedInteract": "You can't access this {0} while it is <color=#ff5555>locked</color> by {1}.",
+  "DecayWarning": "<color=#d4a017>Important:</color> You have {0} minute(s) to mount your {1} again, or it will become public.",
+  "DecayedOwnership": "{0} ownership has decayed; it is now public.",
+  "PruneStart": "Pruning vehicle data...",
+  "PruneDone": "Pruning complete: removed {0} stale entries.",
+  "nobody": "nobody"
+}

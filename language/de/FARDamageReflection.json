@@ -1,0 +1,12 @@
+{
+  "pvpAutoKick": "PvP verboten! Kick wegen Angriff auf {0}",
+  "pvpWarnAttacker": "<color=#ff5555>PvP verboten!</color> Verwarnung: {0}/{1}",
+  "pvpWarnVictim": "<color=#55ff55>PvP verboten!</color> Du wurdest von {0} angegriffen",
+  "forbiddenRemoved": "<color=#ff5555>Hier darfst du {0} nicht platzieren!</color> Gegenstand entfernt.",
+  "forbiddenReminder": "<color=#ffaa00>Hinweis:</color> {0} darf nur in deiner eigenen Base platziert werden.",
+  "raidAutoBan": "Unautorisierter Raid! Temporärer Bann für {0}h",
+  "raidAutoKick": "Unautorisierter Raid! Kein Raidable-Base-Event!",
+  "raidIgnore": "<color=#55ff55>Pass auf!</color> Du hast {0}s Gebäude getroffen!",
+  "raidStrike": "<color=#ff5555>Raids verboten!</color> Verwarnung: {0}/{1}.",
+  "TcAuthGuard": "Dieser TC muss <color=#ffaa00>abgeschlossen</color> sein, bevor du Autorisierungen ändern kannst!"
+}

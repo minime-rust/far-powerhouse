@@ -1,0 +1,12 @@
+{
+  "pvpAutoKick": "PvP запрещён! Кик за атаку на игрока {0}",
+  "pvpWarnAttacker": "<color=#ff5555>PvP запрещён!</color> Предупреждение: {0}/{1}",
+  "pvpWarnVictim": "<color=#55ff55>PvP запрещён!</color> Вас атаковал {0}",
+  "forbiddenRemoved": "<color=#ff5555>Здесь нельзя ставить {0}!</color> Предмет удалён.",
+  "forbiddenReminder": "<color=#ffaa00>Напоминание:</color> {0} можно ставить только в своём укрытии.",
+  "raidAutoBan": "Несанкционированный рейд! Временный бан на {0} ч",
+  "raidAutoKick": "Несанкционированный рейд! Сейчас не событие «Рейд баз»!",
+  "raidIgnore": "<color=#55ff55>Осторожно!</color> Вы попали в постройку {0}",
+  "raidStrike": "<color=#ff5555>Рейды запрещены!</color> Предупреждение: {0}/{1}",
+  "TcAuthGuard": "Сначала <color=#ffaa00>закройте</color> TC, чтобы изменить доступ!"
+}

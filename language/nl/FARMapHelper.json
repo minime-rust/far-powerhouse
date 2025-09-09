@@ -1,0 +1,7 @@
+{
+  "WorldInfo": "Wereldgrootte {0} | grid {1}x{1} | vakken {2}-{3}",
+  "WhereAmI": "Je bent in vak ({0}){1}",
+  "WhereAmIFull": "Je bent in vak ({0}){1} op (x{2}, z{3})",
+  "NearMonument": " bij {0}",
+  "OffGrid": "off-grid"
+}

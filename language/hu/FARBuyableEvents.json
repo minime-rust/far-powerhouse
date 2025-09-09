@@ -1,0 +1,12 @@
+{
+  "NoBradleyEndgame": "Nincs Bradley a végjáték alatt. Elég Bradley van az utakon, szerezd meg a sajátodat!",
+  "NoSupply": "Nincs {0} a készletedben? Hoppá, lehet, hogy valamit elfelejtettél!",
+  "NotInMonument": "Nem vagy a Launch Site-nál? Menj a Launch Site-hoz és próbáld újra!",
+  "NoPatrolExists": "Már van egy Patrol Chopper a térképen. Próbáld meg később!",
+  "PatrolSpawnFail": "A Patrol Chopper spawnolása sikertelen; pénzt nem vontunk le.",
+  "PatrolSpawnSuccess": "Patrol Chopper hívva a pozíciódra — 1 {0} elhasználva. Sok szerencsét!",
+  "BradleySpawnFail": "A Bradley spawnolása sikertelen; pénzt nem vontunk le.",
+  "BradleySpawnSuccess": "Launch Site Bradley hívva — 1 {0} elhasználva. Sok szerencsét!",
+  "BradleyExists": "Ezen a monumentumon már van egy Bradley.",
+  "NoMonumentFinder": "A MonumentFinder plugin nem elérhető."
+}

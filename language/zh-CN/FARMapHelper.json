@@ -1,0 +1,7 @@
+{
+  "WorldInfo": "世界大小 {0} | 网格 {1}x{1} | 区块 {2}-{3}",
+  "WhereAmI": "你在区块 ({0}){1}",
+  "WhereAmIFull": "你在区块 ({0}){1}，坐标 (x{2}, z{3})",
+  "NearMonument": " 靠近 {0}",
+  "OffGrid": "off-grid"
+}

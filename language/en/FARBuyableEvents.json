@@ -1,0 +1,12 @@
+{
+  "NoBradleyEndgame": "No Bradley during end game. Enough Bradleys on the roads, go and get yours!",
+  "NoSupply": "No {0} in your inventory? Oops, you might have forgotten something!",
+  "NotInMonument": "Not at Launch Site? Go to Launch Site and try again!",
+  "NoPatrolExists": "There is already a Patrol Chopper on the map. Try again later!",
+  "PatrolSpawnFail": "Spawning Patrol Chopper failed; no payment was taken.",
+  "PatrolSpawnSuccess": "Patrol Chopper called to your position — 1 {0} consumed. Good luck!",
+  "BradleySpawnFail": "Spawning Bradley failed; no payment was taken.",
+  "BradleySpawnSuccess": "Launch Site Bradley called — 1 {0} consumed. Good luck!",
+  "BradleyExists": "A Bradley already exists at this monument.",
+  "NoMonumentFinder": "MonumentFinder plugin not available."
+}

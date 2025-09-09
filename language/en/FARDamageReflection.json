@@ -1,0 +1,12 @@
+{
+  "pvpAutoKick": "No PVP allowed! Kicked for PVP on Player {0}",
+  "pvpWarnAttacker": "<color=#ff5555>No PVP allowed!</color> Strike: {0}/{1}",
+  "pvpWarnVictim": "<color=#55ff55>No PVP allowed!</color> You were attacked by {0}",
+  "forbiddenRemoved": "<color=#ff5555>You are not allowed to place {0} here!</color> The item was removed.",
+  "forbiddenReminder": "<color=#ffaa00>Reminder:</color> Placement of {0} is restricted to your own base.",
+  "raidAutoBan": "Unauthorized raiding! Temporary ban {0}h",
+  "raidAutoKick": "Unauthorized raiding! This is not a Raidable Base event!",
+  "raidIgnore": "<color=#55ff55>Watch your fire!</color> You hit {0}'s building!",
+  "raidStrike": "<color=#ff5555>Raiding is not allowed!</color> Strike: {0}/{1}.",
+  "TcAuthGuard": "This TC needs to be <color=#ffaa00>locked</color> before you can change auth!"
+}

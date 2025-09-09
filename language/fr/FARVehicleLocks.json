@@ -1,0 +1,18 @@
+{
+  "NoVehiclesOwned": "Vous ne possédez actuellement aucun véhicule.",
+  "NotMountedDriver": "Vous devez être assis sur le siège conducteur d’un véhicule pris en charge.",
+  "TypeLimitReached": "Vous avez atteint le maximum de {0} {1}(s) verrouillés.",
+  "ListLockedAndOwned": "{0} | dans la zone du TC : {1} | dernier conducteur : {2} | monté : {3}",
+  "LockedNowOwnerAssigned": "Ce {0} est verrouillé. Vous en êtes maintenant le propriétaire.",
+  "UnlockedNow": "Ce {0} est déverrouillé. Il est de nouveau public.",
+  "HintCommandUsage": "Utilisez <color=#55ff55>/vehicle lock</color> - verrouille le véhicule que vous conduisez.\nUtilisez <color=#55ff55>/vehicle unlock</color> - déverrouille le véhicule que vous conduisez.\nUtilisez <color=#55ff55>/vehicle list</color> - affiche vos véhicules possédés.",
+  "HintLockUnowned": "Utilisez <color=#55ff55>/vehicle list</color> - affiche vos véhicules possédés.\nTapez <color=#55ff55>/vehicle lock</color> dans le chat pour revendiquer ce {0} pour vous ou pour votre équipe.",
+  "HintUnlockOwned": "Utilisez <color=#55ff55>/vehicle list</color> - affiche vos véhicules possédés.\nTapez <color=#55ff55>/vehicle unlock</color> dans le chat pour rendre ce {0} à nouveau public.",
+  "DeniedDriverSeat": "Ce {0} est <color=#ff5555>verrouillé</color> par {1}.",
+  "DeniedInteract": "Vous ne pouvez pas interagir avec ce {0} tant qu’il est <color=#ff5555>verrouillé</color> par {1}.",
+  "DecayWarning": "<color=#d4a017>Important :</color> Vous avez {0} minute(s) pour remonter sur votre {1}, sinon il redeviendra public.",
+  "DecayedOwnership": "La propriété de {0} a expiré ; il est maintenant public.",
+  "PruneStart": "Nettoyage des données des véhicules...",
+  "PruneDone": "Nettoyage terminé : {0} entrées obsolètes supprimées.",
+  "nobody": "personne"
+}

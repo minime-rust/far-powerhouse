@@ -1,0 +1,7 @@
+{
+  "WorldInfo": "Kartengröße {0} | Raster {1}x{1} | Felder {2}–{3}",
+  "WhereAmI": "Du befindest dich im Feld ({0}){1}",
+  "WhereAmIFull": "Du befindest dich im Feld ({0}){1} bei Koordinaten (x{2}, z{3})",
+  "NearMonument": " nahe {0}",
+  "OffGrid": "off-grid"
+}

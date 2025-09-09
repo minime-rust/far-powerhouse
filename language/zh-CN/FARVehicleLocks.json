@@ -1,0 +1,18 @@
+{
+  "NoVehiclesOwned": "你目前没有任何载具。",
+  "NotMountedDriver": "你必须坐在支持的载具驾驶座上。",
+  "TypeLimitReached": "你已达到最多 {0} 辆已上锁的 {1}。",
+  "ListLockedAndOwned": "{0} | 在TC范围内: {1} | 上次驾驶者: {2} | 是否有人乘坐: {3}",
+  "LockedNowOwnerAssigned": "已锁定此 {0}。你现在是它的所有者。",
+  "UnlockedNow": "已解锁此 {0}。它现在重新对所有人开放。",
+  "HintCommandUsage": "使用 <color=#55ff55>/vehicle lock</color> - 锁定你正在驾驶的载具。\n使用 <color=#55ff55>/vehicle unlock</color> - 解锁你正在驾驶的载具。\n使用 <color=#55ff55>/vehicle list</color> - 显示你当前拥有的载具。",
+  "HintLockUnowned": "使用 <color=#55ff55>/vehicle list</color> - 显示你当前拥有的载具。\n在聊天输入 <color=#55ff55>/vehicle lock</color> 将此 {0} 设为你的或仅限团队使用。",
+  "HintUnlockOwned": "使用 <color=#55ff55>/vehicle list</color> - 显示你当前拥有的载具。\n在聊天输入 <color=#55ff55>/vehicle unlock</color> 将此 {0} 重新设为公开。",
+  "DeniedDriverSeat": "此 {0} 已被 {1} <color=#ff5555>上锁</color>。",
+  "DeniedInteract": "在此 {0} 被 {1} <color=#ff5555>上锁</color>时，你无法进行交互。",
+  "DecayWarning": "<color=#d4a017>重要提示：</color> 你还有 {0} 分钟再次乘坐你的 {1}，否则它将变为公开。",
+  "DecayedOwnership": "{0} 的所有权已过期，现在为公开状态。",
+  "PruneStart": "正在清理载具数据...",
+  "PruneDone": "清理完成：移除了 {0} 条过期数据。",
+  "nobody": "无"
+}

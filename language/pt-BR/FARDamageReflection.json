@@ -1,0 +1,12 @@
+{
+  "pvpAutoKick": "PVP proibido! Expulso por atacar {0}",
+  "pvpWarnAttacker": "<color=#ff5555>PVP proibido!</color> Aviso: {0}/{1}",
+  "pvpWarnVictim": "<color=#55ff55>PVP proibido!</color> Você foi atacado por {0}",
+  "forbiddenRemoved": "<color=#ff5555>Não pode colocar {0} aqui!</color> Item removido.",
+  "forbiddenReminder": "<color=#ffaa00>Aviso:</color> {0} só pode ser colocado na sua base.",
+  "raidAutoBan": "Ataque não autorizado! Ban temporário de {0}h",
+  "raidAutoKick": "Ataque não autorizado! Não é um evento de Base Invasível!",
+  "raidIgnore": "<color=#55ff55>Cuidado com o fogo!</color> Você acertou a base de {0}!",
+  "raidStrike": "<color=#ff5555>Ataques proibidos!</color> Aviso: {0}/{1}",
+  "TcAuthGuard": "Este TC precisa estar <color=#ffaa00>trancado</color> antes de alterar permissões!"
+}

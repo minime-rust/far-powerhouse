@@ -1,0 +1,18 @@
+{
+  "NoVehiclesOwned": "Jelenleg nincs járműved.",
+  "NotMountedDriver": "A járművezetői ülésben kell ülnöd egy támogatott járműnél.",
+  "TypeLimitReached": "Elérted a maximumot: {0} lezárt {1}.",
+  "ListLockedAndOwned": "{0} | TC hatótávolságban: {1} | utolsó vezető: {2} | felülve: {3}",
+  "LockedNowOwnerAssigned": "Lezártuk ezt a {0}-t. Mostantól te vagy a tulajdonosa.",
+  "UnlockedNow": "Kinyitottuk ezt a {0}-t. Mostantól újra nyilvános.",
+  "HintCommandUsage": "Használd <color=#55ff55>/vehicle lock</color> - lezárja a járművet, amit vezetsz.\nHasználd <color=#55ff55>/vehicle unlock</color> - kinyitja a járművet, amit vezetsz.\nHasználd <color=#55ff55>/vehicle list</color> - listázza az összes jelenleg birtokolt járműved.",
+  "HintLockUnowned": "Használd <color=#55ff55>/vehicle list</color> - listázza a jelenleg birtokolt járműveket.\nÍrd be a chatbe <color=#55ff55>/vehicle lock</color>, hogy ez a {0} a tiéd vagy csak a csapatodé legyen.",
+  "HintUnlockOwned": "Használd <color=#55ff55>/vehicle list</color> - listázza a jelenleg birtokolt járműveket.\nÍrd be a chatbe <color=#55ff55>/vehicle unlock</color>, hogy ez a {0} újra nyilvános legyen.",
+  "DeniedDriverSeat": "Ez a {0} <color=#ff5555>lezárt</color> {1} által.",
+  "DeniedInteract": "Nem férhetsz hozzá ehhez a {0}-hoz, amíg az <color=#ff5555>lezárt</color> {1} által.",
+  "DecayWarning": "<color=#d4a017>Fontos:</color> {0} perc van hátra, hogy újra felülj a {1}-re, különben nyilvános lesz.",
+  "DecayedOwnership": "{0} tulajdonjoga lejárt; most már nyilvános.",
+  "PruneStart": "Járműadatok tisztítása...",
+  "PruneDone": "Tisztítás kész: {0} elavult bejegyzés eltávolítva.",
+  "nobody": "senki"
+}

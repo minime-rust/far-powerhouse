@@ -1,0 +1,12 @@
+{
+  "pvpAutoKick": "禁止 PVP！攻击玩家 {0} 已被踢出",
+  "pvpWarnAttacker": "<color=#ff5555>禁止 PVP！</color> 违规次数：{0}/{1}",
+  "pvpWarnVictim": "<color=#55ff55>禁止 PVP！</color> 你被 {0} 攻击",
+  "forbiddenRemoved": "<color=#ff5555>此处禁止放置 {0}！</color> 物品已移除",
+  "forbiddenReminder": "<color=#ffaa00>提醒：</color> {0} 仅能放置在自己的基地",
+  "raidAutoBan": "非法袭击！临时封禁 {0} 小时",
+  "raidAutoKick": "非法袭击！当前非袭击基地活动！",
+  "raidIgnore": "<color=#55ff55>注意射击！</color> 你击中了 {0} 的建筑！",
+  "raidStrike": "<color=#ff5555>禁止袭击！</color> 违规次数：{0}/{1}",
+  "TcAuthGuard": "更改权限前，需先<color=#ffaa00>锁定</color>此工具箱！"
+}

@@ -1,0 +1,7 @@
+{
+  "WorldInfo": "világméret {0} | rács {1}x{1} | négyzetek {2}-{3}",
+  "WhereAmI": "A térképen a ({0}) négyzetben vagy{1}",
+  "WhereAmIFull": "A térképen a ({0}) négyzetben vagy{1}, koordináták: (x{2}, z{3})",
+  "NearMonument": " közel {0}-hoz/-hez",
+  "OffGrid": "a rácson kívül"
+}

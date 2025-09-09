@@ -1,0 +1,12 @@
+{
+  "pvpAutoKick": "PVP is verboden! Verwijderd voor PVP op speler {0}",
+  "pvpWarnAttacker": "<color=#ff5555>PVP is verboden!</color> Waarschuwing: {0}/{1}",
+  "pvpWarnVictim": "<color=#55ff55>PVP is verboden!</color> Je werd aangevallen door {0}",
+  "forbiddenRemoved": "<color=#ff5555>Je mag {0} hier niet plaatsen!</color> Item is verwijderd.",
+  "forbiddenReminder": "<color=#ffaa00>Herinnering:</color> {0} mag alleen in je eigen base.",
+  "raidAutoBan": "Ongerechtvaardigde raid! Tijdelijke ban: {0}u",
+  "raidAutoKick": "Ongerechtvaardigde raid! Dit is geen Raidable Base-event!",
+  "raidIgnore": "<color=#55ff55>Pas op waar je schiet!</color> Je raakte {0}'s gebouw!",
+  "raidStrike": "<color=#ff5555>Raiden is verboden!</color> Waarschuwing: {0}/{1}.",
+  "TcAuthGuard": "Deze TC moet eerst <color=#ffaa00>vergrendeld</color> zijn voordat je auth kunt wijzigen!"
+}

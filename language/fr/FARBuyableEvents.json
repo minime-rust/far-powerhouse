@@ -1,0 +1,12 @@
+{
+  "NoBradleyEndgame": "Pas de Bradley en fin de wipe. Il y en a déjà assez sur les routes, va chercher le tien !",
+  "NoSupply": "Pas de {0} dans ton inventaire ? Oups, tu as peut-être oublié quelque chose !",
+  "NotInMonument": "Tu n’es pas au Launch Site ? Rends-toi au Launch Site et réessaie !",
+  "NoPatrolExists": "Un hélico de patrouille est déjà présent sur la carte. Réessaie plus tard !",
+  "PatrolSpawnFail": "Échec du spawn de l’hélico de patrouille ; aucun paiement n’a été pris.",
+  "PatrolSpawnSuccess": "Hélico de patrouille appelé à ta position — 1 {0} consommé. Bonne chance !",
+  "BradleySpawnFail": "Échec du spawn du Bradley ; aucun paiement n’a été pris.",
+  "BradleySpawnSuccess": "Bradley du Launch Site appelé — 1 {0} consommé. Bonne chance !",
+  "BradleyExists": "Un Bradley est déjà présent à ce monument.",
+  "NoMonumentFinder": "Le plugin MonumentFinder n’est pas disponible."
+}

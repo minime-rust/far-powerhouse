@@ -1,0 +1,7 @@
+{
+  "WorldInfo": "tamanho do mundo {0} | grelha {1}x{1} | quadrados {2}-{3}",
+  "WhereAmI": "Estás no quadrado do mapa ({0}){1}",
+  "WhereAmIFull": "Estás no quadrado do mapa ({0}){1} nas coordenadas (x{2}, z{3})",
+  "NearMonument": " perto de {0}",
+  "OffGrid": "fora da grelha"
+}

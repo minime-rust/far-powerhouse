@@ -1,0 +1,12 @@
+{
+  "NoBradleyEndgame": "Kein Bradley im Endgame. Es gibt genug Bradleys auf den Straßen – hol dir deinen!",
+  "NoSupply": "Kein {0} im Inventar? Upps, da hast du wohl was vergessen!",
+  "NotInMonument": "Nicht am Launch Site? Geh zum Launch Site und versuch es nochmal!",
+  "NoPatrolExists": "Es gibt bereits einen Patrol-Heli auf der Karte. Versuch es später nochmal!",
+  "PatrolSpawnFail": "Patrol-Heli konnte nicht gespawnt werden; keine Zahlung wurde abgezogen.",
+  "PatrolSpawnSuccess": "Patrol-Heli zu deiner Position gerufen — 1 {0} verbraucht. Viel Glück!",
+  "BradleySpawnFail": "Bradley konnte nicht gespawnt werden; keine Zahlung wurde abgezogen.",
+  "BradleySpawnSuccess": "Bradley am Launch Site gerufen — 1 {0} verbraucht. Viel Glück!",
+  "BradleyExists": "An diesem Monument gibt es bereits einen Bradley.",
+  "NoMonumentFinder": "MonumentFinder-Plugin nicht verfügbar."
+}

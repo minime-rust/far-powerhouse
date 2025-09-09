@@ -1,0 +1,18 @@
+{
+  "NoVehiclesOwned": "Du besitzt derzeit keine Fahrzeuge.",
+  "NotMountedDriver": "Du musst auf dem Fahrersitz eines unterstützten Fahrzeugs sitzen.",
+  "TypeLimitReached": "Du hast das Maximum von {0} gesperrten {1}(s) erreicht.",
+  "ListLockedAndOwned": "{0} | im TC-Bereich: {1} | letzter Fahrer: {2} | besetzt: {3}",
+  "LockedNowOwnerAssigned": "Dieses {0} wurde gesperrt. Du bist nun der Besitzer.",
+  "UnlockedNow": "Dieses {0} wurde entsperrt. Es ist jetzt wieder öffentlich.",
+  "HintCommandUsage": "Nutze <color=#55ff55>/vehicle lock</color> – sperrt das Fahrzeug, das du fährst.\nNutze <color=#55ff55>/vehicle unlock</color> – entsperrt das Fahrzeug, das du fährst.\nNutze <color=#55ff55>/vehicle list</color> – zeigt deine aktuell besessenen Fahrzeuge an.",
+  "HintLockUnowned": "Nutze <color=#55ff55>/vehicle list</color> – zeigt deine aktuell besessenen Fahrzeuge an.\nNutze <color=#55ff55>/vehicle lock</color> im Chat, um dieses {0} dir oder deinem Team zuzuschreiben.",
+  "HintUnlockOwned": "Nutze <color=#55ff55>/vehicle list</color> – zeigt deine aktuell besessenen Fahrzeuge an.\nNutze <color=#55ff55>/vehicle unlock</color> im Chat, um dieses {0} wieder öffentlich zu machen.",
+  "DeniedDriverSeat": "Dieses {0} ist von {1} <color=#ff5555>gesperrt</color>.",
+  "DeniedInteract": "Du kannst nicht auf dieses {0} zugreifen, solange es von {1} <color=#ff5555>gesperrt</color> ist.",
+  "DecayWarning": "<color=#d4a017>Wichtig:</color> Du hast {0} Minute(n) Zeit, dein {1} erneut zu besteigen, sonst wird es öffentlich.",
+  "DecayedOwnership": "Die Besitzrechte an {0} sind verfallen; es ist jetzt öffentlich.",
+  "PruneStart": "Fahrzeugdaten werden bereinigt...",
+  "PruneDone": "Bereinigung abgeschlossen: {0} veraltete Einträge entfernt.",
+  "nobody": "niemand"
+}

@@ -1,0 +1,12 @@
+{
+  "NoBradleyEndgame": "Sem Bradley no final do jogo. Já há Bradleys suficientes nas estradas, vai buscar o teu!",
+  "NoSupply": "Não tens {0} no inventário? Ups, esqueceste-te de alguma coisa!",
+  "NotInMonument": "Não estás no Launch Site? Vai até ao Launch Site e tenta de novo!",
+  "NoPatrolExists": "Já existe um Helicóptero de Patrulha no mapa. Tenta mais tarde!",
+  "PatrolSpawnFail": "Falha ao gerar o Helicóptero de Patrulha; nenhum pagamento foi retirado.",
+  "PatrolSpawnSuccess": "Helicóptero de Patrulha chamado para a tua posição — 1 {0} consumido. Boa sorte!",
+  "BradleySpawnFail": "Falha ao gerar o Bradley; nenhum pagamento foi retirado.",
+  "BradleySpawnSuccess": "Bradley do Launch Site chamado — 1 {0} consumido. Boa sorte!",
+  "BradleyExists": "Já existe um Bradley neste monumento.",
+  "NoMonumentFinder": "Plugin MonumentFinder não disponível."
+}

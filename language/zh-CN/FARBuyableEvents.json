@@ -1,0 +1,12 @@
+{
+  "NoBradleyEndgame": "末期阶段禁止召唤布拉德利。公路上已经有足够的布拉德利了，去击毁一个吧！",
+  "NoSupply": "你的背包里没有 {0}？哎呀，你可能忘了带东西！",
+  "NotInMonument": "你不在发射井？去发射井再试一次！",
+  "NoPatrolExists": "地图上已经有一架武装直升机了。稍后再试吧！",
+  "PatrolSpawnFail": "召唤武装直升机失败；未扣除任何物品。",
+  "PatrolSpawnSuccess": "武装直升机已呼叫到你的位置 —— 消耗了 1 个 {0}。祝你好运！",
+  "BradleySpawnFail": "召唤布拉德利失败；未扣除任何物品。",
+  "BradleySpawnSuccess": "发射井布拉德利已呼叫 —— 消耗了 1 个 {0}。祝你好运！",
+  "BradleyExists": "该纪念点已经存在一辆布拉德利。",
+  "NoMonumentFinder": "未检测到 MonumentFinder 插件。"
+}

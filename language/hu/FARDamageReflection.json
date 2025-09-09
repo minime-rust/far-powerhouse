@@ -1,0 +1,12 @@
+{
+  "pvpAutoKick": "PVP nem engedélyezett! Kirúgtuk {0} ellenes PVP miatt",
+  "pvpWarnAttacker": "<color=#ff5555>PVP nem engedélyezett!</color> Figyelmeztetés: {0}/{1}",
+  "pvpWarnVictim": "<color=#55ff55>PVP nem engedélyezett!</color> Támadott {0} által",
+  "forbiddenRemoved": "<color=#ff5555>Nem helyezhetsz el {0}-t itt!</color> A tárgyat eltávolítottuk.",
+  "forbiddenReminder": "<color=#ffaa00>Emlékeztető:</color> {0} elhelyezése csak a saját bázisodon engedélyezett.",
+  "raidAutoBan": "Jogtalan razzia! Ideiglenes tiltás: {0} óra",
+  "raidAutoKick": "Jogtalan razzia! Ez nem egy Raidable Base esemény!",
+  "raidIgnore": "<color=#55ff55>Vigyázz a tűzzel!</color> Megütötted {0} épületét!",
+  "raidStrike": "<color=#ff5555>Razzia nem engedélyezett!</color> Figyelmeztetés: {0}/{1}.",
+  "TcAuthGuard": "Ehhez a TC-hez előbb <color=#ffaa00>zárni</color> kell, mielőtt változtatnál az engedélyeken!"
+}

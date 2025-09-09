@@ -1,0 +1,7 @@
+{
+  "WorldInfo": "Taille {0} | grille {1}x{1} | cases {2}-{3}",
+  "WhereAmI": "Case ({0}){1}",
+  "WhereAmIFull": "Case ({0}){1} aux coords (x{2}, z{3})",
+  "NearMonument": " près de {0}",
+  "OffGrid": "off-grid"
+}

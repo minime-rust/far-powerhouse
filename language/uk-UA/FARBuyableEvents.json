@@ -1,0 +1,12 @@
+{
+  "NoBradleyEndgame": "Під час фінальної стадії немає Bradley. Досить їх на дорогах, бери свій!",
+  "NoSupply": "Немає {0} в інвентарі? Ой, мабуть, щось забув!",
+  "NotInMonument": "Не на Launch Site? Йди на Launch Site і спробуй ще раз!",
+  "NoPatrolExists": "Патрульний вертоліт вже є на карті. Спробуй пізніше!",
+  "PatrolSpawnFail": "Не вдалося викликати Patrol Chopper; оплата не списана.",
+  "PatrolSpawnSuccess": "Patrol Chopper прибуває до твоєї позиції — витрачено 1 {0}. Удачі!",
+  "BradleySpawnFail": "Не вдалося викликати Bradley; оплата не списана.",
+  "BradleySpawnSuccess": "Bradley на Launch Site викликаний — витрачено 1 {0}. Удачі!",
+  "BradleyExists": "Bradley вже присутній на цьому монументі.",
+  "NoMonumentFinder": "Плагін MonumentFinder недоступний."
+}

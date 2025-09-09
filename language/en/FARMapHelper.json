@@ -1,0 +1,7 @@
+{
+  "WorldInfo": "worldSize {0} | grid {1}x{1} | squares {2}-{3}",
+  "WhereAmI": "You are in map square ({0}){1}",
+  "WhereAmIFull": "You are in map square ({0}){1} at coords (x{2}, z{3})",
+  "NearMonument": " near {0}",
+  "OffGrid": "off-grid"
+}

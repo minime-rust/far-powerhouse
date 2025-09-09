@@ -1,0 +1,7 @@
+{
+  "WorldInfo": "Tamanho {0} | grade {1}x{1} | quadrados {2}-{3}",
+  "WhereAmI": "Você está no quadrado ({0}){1}",
+  "WhereAmIFull": "Você está no quadrado ({0}){1} (x{2}, z{3})",
+  "NearMonument": " perto de {0}",
+  "OffGrid": "off-grid"
+}

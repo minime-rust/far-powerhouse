@@ -1,0 +1,12 @@
+{
+  "pvpAutoKick": "PVP заборонено! Кік за PVP на гравці {0}",
+  "pvpWarnAttacker": "<color=#ff5555>PVP заборонено!</color> Попередження: {0}/{1}",
+  "pvpWarnVictim": "<color=#55ff55>PVP заборонено!</color> Вас атакував {0}",
+  "forbiddenRemoved": "<color=#ff5555>Ви не можете ставити {0} тут!</color> Предмет видалено.",
+  "forbiddenReminder": "<color=#ffaa00>Нагадування:</color> {0} можна ставити лише у власній базі.",
+  "raidAutoBan": "Несанкціонований рейд! Тимчасовий бан {0} год",
+  "raidAutoKick": "Несанкціонований рейд! Це не подія Raidable Base!",
+  "raidIgnore": "<color=#55ff55>Слідкуй за вогнем!</color> Ви влучили у будівлю {0}!",
+  "raidStrike": "<color=#ff5555>Рейди заборонені!</color> Попередження: {0}/{1}.",
+  "TcAuthGuard": "Цей TC треба <color=#ffaa00>заблокувати</color>, перш ніж змінювати авторизацію!"
+}

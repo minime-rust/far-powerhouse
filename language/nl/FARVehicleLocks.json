@@ -1,0 +1,18 @@
+{
+  "NoVehiclesOwned": "Je bezit momenteel geen voertuigen.",
+  "NotMountedDriver": "Je moet op de bestuurdersstoel van een ondersteund voertuig zitten.",
+  "TypeLimitReached": "Je hebt het maximum van {0} vergrendelde {1}(s) bereikt.",
+  "ListLockedAndOwned": "{0} | in TC-bereik: {1} | laatste berijder: {2} | bereden: {3}",
+  "LockedNowOwnerAssigned": "Dit {0} is vergrendeld. Jij bent nu de eigenaar.",
+  "UnlockedNow": "Dit {0} is ontgrendeld. Het is nu weer openbaar.",
+  "HintCommandUsage": "Gebruik <color=#55ff55>/vehicle lock</color> - vergrendel het voertuig dat je bestuurt.\nGebruik <color=#55ff55>/vehicle unlock</color> - ontgrendel het voertuig dat je bestuurt.\nGebruik <color=#55ff55>/vehicle list</color> - toon je huidige voertuigen.",
+  "HintLockUnowned": "Gebruik <color=#55ff55>/vehicle list</color> - toon je huidige voertuigen.\nGebruik <color=#55ff55>/vehicle lock</color> in de chat om dit {0} van jou of alleen voor je team te maken.",
+  "HintUnlockOwned": "Gebruik <color=#55ff55>/vehicle list</color> - toon je huidige voertuigen.\nGebruik <color=#55ff55>/vehicle unlock</color> in de chat om dit {0} weer openbaar te maken.",
+  "DeniedDriverSeat": "Dit {0} is <color=#ff5555>vergrendeld</color> door {1}.",
+  "DeniedInteract": "Je hebt geen toegang tot dit {0} zolang het <color=#ff5555>vergrendeld</color> is door {1}.",
+  "DecayWarning": "<color=#d4a017>Belangrijk:</color> Je hebt {0} minuut/minuten om opnieuw op je {1} te gaan zitten, anders wordt het openbaar.",
+  "DecayedOwnership": "{0} eigendom is verlopen; het is nu openbaar.",
+  "PruneStart": "Bezig met opschonen van voertuigdata...",
+  "PruneDone": "Opschonen voltooid: {0} verouderde items verwijderd.",
+  "nobody": "niemand"
+}

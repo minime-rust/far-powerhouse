@@ -1,0 +1,7 @@
+{
+  "WorldInfo": "dimensione mappa {0} | griglia {1}x{1} | quadrati {2}-{3}",
+  "WhereAmI": "Sei nel quadrato della mappa ({0}){1}",
+  "WhereAmIFull": "Sei nel quadrato della mappa ({0}){1} alle coordinate (x{2}, z{3})",
+  "NearMonument": " vicino a {0}",
+  "OffGrid": "fuori griglia"
+}

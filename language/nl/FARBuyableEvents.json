@@ -1,0 +1,12 @@
+{
+  "NoBradleyEndgame": "Geen Bradley tijdens endgame. Genoeg Bradleys op de wegen, ga er eentje ownen!",
+  "NoSupply": "Geen {0} in je inventory? Oeps, je bent misschien iets vergeten!",
+  "NotInMonument": "Niet bij Launch Site? Ga naar Launch Site en probeer opnieuw!",
+  "NoPatrolExists": "Er vliegt al een Patrol Chopper op de map. Probeer het later opnieuw!",
+  "PatrolSpawnFail": "Spawnen van Patrol Chopper mislukt; er is niets afgeschreven.",
+  "PatrolSpawnSuccess": "Patrol Chopper naar je locatie geroepen — 1 {0} verbruikt. Succes!",
+  "BradleySpawnFail": "Spawnen van Bradley mislukt; er is niets afgeschreven.",
+  "BradleySpawnSuccess": "Launch Site Bradley gespawned — 1 {0} verbruikt. Succes!",
+  "BradleyExists": "Er is al een Bradley bij dit monument.",
+  "NoMonumentFinder": "MonumentFinder plugin niet beschikbaar."
+}

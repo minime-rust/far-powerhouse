@@ -1,0 +1,18 @@
+{
+  "NoVehiclesOwned": "Non possiedi al momento veicoli.",
+  "NotMountedDriver": "Devi essere seduto al posto di guida di un veicolo supportato.",
+  "TypeLimitReached": "Hai raggiunto il massimo di {0} {1} bloccati.",
+  "ListLockedAndOwned": "{0} | nel raggio del TC: {1} | ultimo conducente: {2} | montato: {3}",
+  "LockedNowOwnerAssigned": "Questo {0} è stato bloccato. Ora sei il suo proprietario.",
+  "UnlockedNow": "Questo {0} è stato sbloccato. Ora è di nuovo pubblico.",
+  "HintCommandUsage": "Usa <color=#55ff55>/vehicle lock</color> - blocca il veicolo che stai guidando.\nUsa <color=#55ff55>/vehicle unlock</color> - sblocca il veicolo che stai guidando.\nUsa <color=#55ff55>/vehicle list</color> - mostra i veicoli che possiedi attualmente.",
+  "HintLockUnowned": "Usa <color=#55ff55>/vehicle list</color> - mostra i veicoli che possiedi attualmente.\nUsa <color=#55ff55>/vehicle lock</color> in chat per rendere questo {0} tuo o solo per il team.",
+  "HintUnlockOwned": "Usa <color=#55ff55>/vehicle list</color> - mostra i veicoli che possiedi attualmente.\nUsa <color=#55ff55>/vehicle unlock</color> in chat per rendere questo {0} di nuovo pubblico.",
+  "DeniedDriverSeat": "Questo {0} è <color=#ff5555>bloccato</color> da {1}.",
+  "DeniedInteract": "Non puoi accedere a questo {0} mentre è <color=#ff5555>bloccato</color> da {1}.",
+  "DecayWarning": "<color=#d4a017>Importante:</color> Hai {0} minuto(i) per risalire sul tuo {1}, altrimenti diventerà pubblico.",
+  "DecayedOwnership": "La proprietà di {0} è decaduta; ora è pubblica.",
+  "PruneStart": "Rimuovendo dati dei veicoli...",
+  "PruneDone": "Rimozione completata: {0} voci obsolete eliminate.",
+  "nobody": "nessuno"
+}
