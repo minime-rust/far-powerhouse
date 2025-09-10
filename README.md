@@ -14,14 +14,14 @@ This repository hosts a growing collection of plugins. Each plugin resides in it
 
 We encourage you to explore the individual plugin folders for more information:
 
-*   **[FAR Box Looters](FAR Box Looters/)** - Rewrite of the fantastic Box Looters plugin, now on steroids.
-*   **[FAR Buyable Events](FAR Buyable Events/)** - Allow players to call the Patrol Chopper or Launch Site Bradley.
-*   **[FAR Damage Reflection](FAR Damage Reflection/)** - Manage PVP and Raid damage - essential life saver for PVE servers.
-*   **[FAR Logger](FAR Logger/)** - Meant to extend Discord Logger, but grew into it's own kind of thing.
-*   **[FAR Map Helper](FAR Map Helper/)** - A little map helper for your own plugin - gives you map square and monument name.
-*   **[FAR TC Lock Auth Guard](FAR TC Lock Auth Guard/)** - Changes TC behavior to be what it should have been to begin with.
-*   **[FAR Vehicle Locks](FAR Vehicle Locks/)** - Rewrite of the Horse Lock, extended to various kinds of vehicles.
-*   **[Supply Lock](Supply Lock/)** - Modification of Ghosty's Supply Lock plugin.
+*   **[FAR Box Looters](FAR%20Box%20Looters/)** - Rewrite of the fantastic Box Looters plugin, now on steroids.
+*   **[FAR Buyable Events](FAR%20Buyable%20Events/)** - Allow players to call the Patrol Chopper or Launch Site Bradley.
+*   **[FAR Damage Reflection](FAR%20Damage%20Reflection/)** - Manage PVP and Raid damage - essential life saver for PVE servers.
+*   **[FAR Logger](FAR%20Logger/)** - Meant to extend Discord Logger, but grew into it's own kind of thing.
+*   **[FAR Map Helper](FAR%20Map%20Helper/)** - A little map helper for your own plugin - gives you map square and monument name.
+*   **[FAR TC Lock Auth Guard](FAR%20TC%20Lock%20Auth%20Guard/)** - Changes TC behavior to be what it should have been to begin with.
+*   **[FAR Vehicle Locks](FAR%20Vehicle%20Locks/)** - Rewrite of the Horse Lock, extended to various kinds of vehicles.
+*   **[Supply Lock](Supply%20Lock/)** - Modification of Ghosty's Supply Lock plugin.
 *   **[language](language/)** - Supporting language files for some of our plugins.
 
 ### Key Features (General to the Collection)
