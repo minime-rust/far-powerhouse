@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("SupplyLock", "Ghosty/miniMe", "2.0.0")]
+    [Info("FAR: Supply Lock", "Ghosty/miniMe", "2.0.0")]
     [Description("Locks Supply Drops to the player or their team, using entity chain tracking.")]
-    public class SupplyLock : RustPlugin
+    public class FARSupplyLock : RustPlugin
     {
         private Dictionary<ulong, ulong> dropOwners = new Dictionary<ulong, ulong>(); // drop.net.ID -> player.userID
         private Dictionary<ulong, ulong> planeOwners = new Dictionary<ulong, ulong>(); // plane.net.ID -> player.userID

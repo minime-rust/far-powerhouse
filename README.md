@@ -19,9 +19,9 @@ We encourage you to explore the individual plugin folders for more information:
 *   **[FAR Damage Reflection](FAR%20Damage%20Reflection/)** - Manage PVP and Raid damage - essential life saver for PVE servers.
 *   **[FAR Logger](FAR%20Logger/)** - Meant to extend Discord Logger, but grew into it's own kind of thing.
 *   **[FAR Map Helper](FAR%20Map%20Helper/)** - A little map helper for your own plugin - gives you map square and monument name.
+*   **[FAR Supply Lock](FAR%20Supply%20Lock/)** - Re-engineered and improved version of original Supply Lock plugin by Ghosty.
 *   **[FAR TC Lock Auth Guard](FAR%20TC%20Lock%20Auth%20Guard/)** - Changes TC behavior to be what it should have been to begin with.
 *   **[FAR Vehicle Locks](FAR%20Vehicle%20Locks/)** - Rewrite of the Horse Lock, extended to various kinds of vehicles.
-*   **[Supply Lock](Supply%20Lock/)** - Modification of Ghosty's Supply Lock plugin.
 *   **[language](language/)** - Supporting language files for some of our plugins.
 
 ### Key Features (General to the Collection)
