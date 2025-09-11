@@ -4,7 +4,8 @@
 The **FAR TC Lock Auth Guard** plugin is designed to enhance the security and management of Tool Cupboard (TC) authorization on your Rust server. It provides server owners with robust controls over who can gain building privileges and interact with TCs, aiming to prevent unauthorized players from easily taking over or griefing bases. This plugin seeks to establish a more controlled and secure TC authorization system, aligning TC behavior with what many server owners desire for enhanced base protection and fair gameplay.
 
 **Are you a user of our FAR Damage Reflection plugin?**
-You don't need `FAR: TC Lock Auth Guard`. The TC Lock Auth Guard is already integrated into our Damage Reflection plugin.
+You don't need `FAR: TC Lock Auth Guard`!
+The TC Lock Auth Guard is already integrated into our Damage Reflection plugin.
 
 ## Features
 *   **Security by Default:** Adding this plugin will change TC behavior server-wide - TCs will behave as if they were locked even without a lock!
