@@ -23,7 +23,7 @@ This meticulously tracked, signal-based logic eliminates race conditions, guaran
 *   **Flexible Integration:** Designed to work seamlessly with existing Rust server setups.
 
 ## Installation
-1.  Download the `SupplyLock.cs` file.
+1.  Download the `FARSupplyLock.cs` file.
 2.  Place the file into your server's `oxide/plugins` (or `carbon/plugins`) folder.
 3.  The plugin will automatically load upon server restart or when manually reloaded.
 
