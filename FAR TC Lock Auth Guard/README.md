@@ -11,7 +11,7 @@ The TC Lock Auth Guard is already integrated into our Damage Reflection plugin.
 
 ## Features
 *   **Security by Default:** Adding this plugin will change TC behavior server-wide - TCs will behave as if they were locked even without a lock!
-*   **Enhanced Authorization Control:** Enforce base security on players' tool cupboards (TC) - TCs now equally safe with or without lock.
+*   **Enhanced Authorization Control:** Enforce base security on players' tool cupboards (TC) - TCs are now equally safe with or without a lock.
 *   **Griefing Prevention:** Implement measures to prevent griefers from just walking up, authing and locking out base owners.
 *   **Flexible Integration:** Designed to work seamlessly with existing Rust server setups by adding a layer of security.
 
