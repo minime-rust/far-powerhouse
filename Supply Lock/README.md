@@ -1,4 +1,4 @@
-# FAR Supply Lock
+# Supply Lock
 
 ## Description
 The **Supply Lock** plugin is a re-engineered and significantly improved version of the origina Supply Lock concept for Rust servers by Ghosty. Its primary purpose is to ensure that supply drops (from both supply signals and Excavator events) are exclusively lootable by the player who legitimately called them. This prevents opportunistic players from stealing valuable loot and ensures a fair reward for those who invested in or triggered the drop.
@@ -18,8 +18,8 @@ This meticulously tracked, signal-based logic eliminates race conditions, guaran
 ## Features
 *   **Reliable Ownership:** Guarantees that supply drops are locked to the exact player who called them, every time, without mix-ups.
 *   **Race-Condition Free:** The redesigned signal-based detection chain eliminates the vulnerabilities found in token-based systems.
+*   **Griefing & Theft Prevention:** Protects players' valuable loot from opportunistic theft - only the rightful owner/team can loot.
 *   **Comprehensive Coverage:** Locks supply drops from both traditional Supply Signals and the Giant Excavator event.
-*   **Griefing & Theft Prevention:** Protects players' valuable loot from opportunistic theft - only the rightful owner or team members can loot.
 *   **Flexible Integration:** Designed to work seamlessly with existing Rust server setups.
 
 ## Installation
