@@ -31,7 +31,7 @@ if (farMapHelperPlugin != null)
     // Process the result, which is expected to be a Tuple<string, string>
     if (apiResult is Tuple<string, string> resultTuple)
     {
-        string mapSquare = resultTuple.Item1;    // e.g., "A13"
+        string mapSquare = resultTuple.Item1;    // e.g., "A13" or "off-grid" if outside of the map
         string monumentName = resultTuple.Item2; // e.g., "Arctic Research Base" or string.Empty
 
         // Now you can use mapSquare and monumentName in your plugin logic
