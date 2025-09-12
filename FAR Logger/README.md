@@ -142,7 +142,8 @@ FAR Logger supports **partial localization** for messages related to the /wipe c
 
 ## Dependencies
 *  **FAR: Map Helper:** We rely on our "FAR: Map Helper" plugin to resolve Supply Drop locations into specific map squares and monument names. FAR Logger will still function and announce the looting of Supply Drops if Map Helper is not present, but the usefulness will be degraded due to the absence of detailed location information.
-Permissions
+
+## Permissions
 None.
 
 ## To-Do
