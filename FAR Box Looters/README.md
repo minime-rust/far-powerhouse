@@ -3,6 +3,8 @@
 ## Description
 The **FAR Box Looters** plugin reimagines how server administrators track container interactions in Rust. Inspired by the foundational work of "Box Looters" by k1lly0u, this plugin was developed to overcome critical limitations of its predecessor, particularly regarding excessive memory consumption, maintenance, and the granularity of historical data. By pivoting to an efficient SQLite database for persistent storage, FAR Box Looters dramatically reduces server RAM footprint while offering superior detail, including precise item-level changes (what was added, what was removed) for every loot event. This provides an indispensable tool for server owners to investigate suspicious activity, track item movements, and identify potential betrayals with unprecedented clarity.
 
+![screenshot](FARBoxLooters.webp)
+
 ## The Evolution: Why FAR Box Looters?
 
 The original "Box Looters" plugin, while a valuable concept, presented several challenges:
