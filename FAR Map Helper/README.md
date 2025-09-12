@@ -47,7 +47,8 @@ if (farMapHelperPlugin != null)
 else
 {
     Puts("FAR Map Helper plugin not found.");
-}```
+}
+```
 
 ### 2. For Players & Admins (Chat Commands)
 The plugin also provides player-accessible chat commands for on-demand location information:
