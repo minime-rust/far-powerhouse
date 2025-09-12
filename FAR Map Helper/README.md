@@ -17,9 +17,8 @@ This allows other plugins to easily add location-specific logic, messaging, or f
 **API Usage Example:**
 
 ```csharp
-// To call the FAR Map Helper API from another plugin:
-// First, get a reference to the plugin. Replace "FAR Map Helper" with the exact plugin name.
-var farMapHelperPlugin = Plugin.Find("FAR Map Helper");
+// To call the FAR Map Helper API from another plugin. First, get a reference to the plugin:
+var farMapHelperPlugin = Plugin.Find("FARMapHelper");
 
 if (farMapHelperPlugin != null)
 {
