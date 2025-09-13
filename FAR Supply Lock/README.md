@@ -1,7 +1,7 @@
 # FAR Supply Lock
 
 ## Licensing & Credits
-This plugin is a derivative work of "Supply Lock" by `Ghosty`. The original plugin does not attribute any license (as of September 2025), meaning the original code's licensing status is undefined by its author and defaults to "All Rights Reserved." All modifications and new code contributed to this derivative work by `minime-rust` are licensed under the MIT License. Users are advised to consider the licensing status of the original code.
+This plugin is a derivative work of "Supply Lock" by `Ghosty`. The original license is provided in `ORIGINAL-LICENSE.txt`, and further attribution details can be found in `NOTICE.FARSupplyLock.md`. This derivative work is also licensed under the MIT License.
 
 ## Description
 The **FAR Supply Lock** plugin is a re-engineered and significantly improved version of the original Supply Lock concept for Rust servers by Ghosty. Its primary purpose is to ensure that supply drops (from both supply signals and Excavator events) are exclusively lootable by the player who legitimately called them. This prevents opportunistic players from stealing valuable loot and ensures a fair reward for those who invested in or triggered the drop.

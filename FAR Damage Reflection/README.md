@@ -1,7 +1,7 @@
 # FAR Damage Reflection
 
 ## Licensing & Credits
-This plugin is a derivative work of "ReflectDamage" by [Chernarust]. The original license is provided in `LICENSE-Original.BoxLooters.txt`, and further attribution details can be found in `NOTICE.FARDamageReflection.md`. This derivative work is also licensed under the MIT License.
+This plugin is a derivative work of "ReflectDamage" by [Chernarust]. The original license is provided in `ORIGINAL-LICENSE.txt`, and further attribution details can be found in `NOTICE.FARDamageReflection.md`. This derivative work is also licensed under the MIT License.
 
 ## Description
 The **FAR Damage Reflection** plugin stands as the cornerstone of fair play and rule enforcement on PvE Rust servers. It meticulously monitors and manages all forms of player-initiated damage, transforming what are often unenforced rule violations into immediately consequential events. By actively reflecting damage back to the aggressor, integrating a sophisticated rule engine, offering extensive configuration, and providing robust PVE plugin compatibility, FAR Damage Reflection auto-moderates common transgressions like player-to-player aggression and raiding attempts. This plugin not only makes rule violations visible but also ensures that every breach carries an immediate, proportionate, and configurable consequence, significantly reducing staff workload and fostering a respectful server environment.
