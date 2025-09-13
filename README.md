@@ -4,7 +4,7 @@ Welcome to the **FAR Powerhouse**, the central repository for custom plugins use
 
 ## 👋 About FAR Powerhouse
 
-Our journey started two years ago with a passion for Rust and running dedicated game servers. We've experienced the challenges of maintaining plugins, adapting to game updates, and navigating the often-stifling support landscape. The FAR Powerhouse is our way of giving back to the community, sharing solutions to common problems, and fostering a collaborative environment for Rust server owners and players.
+Our journey started in 2023 with a passion for Rust and running dedicated game servers. We've experienced the challenges of maintaining plugins, adapting to game updates, and navigating the often-stifling support landscape. The FAR Powerhouse is our way of giving back to the community, sharing solutions to common problems, and fostering a collaborative environment for Rust server owners and players.
 
 Here, you'll find a collection of plugins that have been developed, tested, and fine-tuned specifically for our servers, addressing various gameplay elements, server management, and quality-of-life improvements. We believe in transparency, continuous improvement, and the power of community-driven development.
 
