@@ -4,7 +4,7 @@
 This plugin is a derivative work of "Box Looters" by `k1lly0u`. The original license is provided in `ORIGINAL-LICENSE.txt`, and further attribution details can be found in `NOTICE.FARBoxLooters.md`. This derivative work is also licensed under the MIT License.
 
 ## Description
-The **FAR Box Looters** plugin reimagines how server administrators track container interactions in Rust. Inspired by the foundational work of "Box Looters" by k1lly0u, this plugin was developed to overcome critical limitations of its predecessor, particularly regarding excessive memory consumption, maintenance, and the granularity of historical data. By pivoting to an efficient SQLite database for persistent storage, FAR Box Looters dramatically reduces server RAM footprint while offering superior detail, including precise item-level changes (what was added, what was removed) for every loot event. This provides an indispensable tool for server owners to investigate suspicious activity, track item movements, and identify potential betrayals with unprecedented clarity.
+The **FAR Box Looters** plugin reimagines how server administrators track container interactions in Rust. Inspired by the foundational work of "Box Looters" by `k1lly0u`, this plugin was developed to overcome critical limitations of its predecessor, particularly regarding excessive memory consumption, maintenance, and the granularity of historical data. By pivoting to an efficient SQLite database for persistent storage, FAR Box Looters dramatically reduces server RAM footprint while offering superior detail, including precise item-level changes (what was added, what was removed) for every loot event. This provides an indispensable tool for server owners to investigate suspicious activity, track item movements, and identify potential betrayals with unprecedented clarity.
 
 ![screenshot](FARBoxLooters.webp)
 
@@ -34,6 +34,7 @@ All chat commands require players to have **auth level 1 (moderator) or 2 (owner
     *   **Function:** Checks the health and performance of the SQLite storage system, ensuring loot events are being processed without backlog.
     *   **Use:** Provides peace of mind that the batched SQL writes are keeping up with server activity.
     *   **Health:** The plugin assesses health every time the server saves and outputs pending data count to the server console for easy access.
+    *   **Output:** Example: `[FAR Box Looters] diag: queuedSql=0, pendingItems=0, lastLootEntries=0, nameCache=0`
 *   `/box clear`
     *   **Function:** Drops the current loot event database and creates a new, empty one.
     *   **Requirement:** Requires **auth level 2**.
