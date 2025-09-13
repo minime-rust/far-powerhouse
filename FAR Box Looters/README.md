@@ -1,5 +1,8 @@
 # FAR Box Looters
 
+## Licensing & Credits
+This plugin is a derivative work of "Box Looters" by `k1lly0u`. The original license is provided in `ORIGINAL-LICENSE.txt`, and further attribution details can be found in `NOTICE.FARBoxLooters.md`. This derivative work is also licensed under the MIT License.
+
 ## Description
 The **FAR Box Looters** plugin reimagines how server administrators track container interactions in Rust. Inspired by the foundational work of "Box Looters" by k1lly0u, this plugin was developed to overcome critical limitations of its predecessor, particularly regarding excessive memory consumption, maintenance, and the granularity of historical data. By pivoting to an efficient SQLite database for persistent storage, FAR Box Looters dramatically reduces server RAM footprint while offering superior detail, including precise item-level changes (what was added, what was removed) for every loot event. This provides an indispensable tool for server owners to investigate suspicious activity, track item movements, and identify potential betrayals with unprecedented clarity.
 

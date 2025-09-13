@@ -1,5 +1,8 @@
 # FAR Damage Reflection
 
+## Licensing & Credits
+This plugin is a derivative work of "ReflectDamage" by [Chernarust]. The original license is provided in `LICENSE-Original.BoxLooters.txt`, and further attribution details can be found in `NOTICE.FARDamageReflection.md`. This derivative work is also licensed under the MIT License.
+
 ## Description
 The **FAR Damage Reflection** plugin stands as the cornerstone of fair play and rule enforcement on PvE Rust servers. It meticulously monitors and manages all forms of player-initiated damage, transforming what are often unenforced rule violations into immediately consequential events. By actively reflecting damage back to the aggressor, integrating a sophisticated rule engine, offering extensive configuration, and providing robust PVE plugin compatibility, FAR Damage Reflection auto-moderates common transgressions like player-to-player aggression and raiding attempts. This plugin not only makes rule violations visible but also ensures that every breach carries an immediate, proportionate, and configurable consequence, significantly reducing staff workload and fostering a respectful server environment.
 
@@ -14,7 +17,7 @@ Many PvE Rust servers operate under a strict code of conduct: "no stealing, no k
 *   **Automatic Moderation:** The plugin's advanced rule engine automates the detection and punishment of rule violations, reducing the need for constant manual intervention by server staff.
 
 ## The Evolution: Beyond Basic Reflection
-FAR Damage Reflection is built upon the brilliant foundational work of "ReflectDamage" by Chernarust (licensed under a permissive MIT license), to whom we proudly attribute credit in our source code and GitHub repository. We have significantly expanded upon this foundation, transforming it into a comprehensive auto-moderation tool:
+FAR Damage Reflection is built upon the brilliant foundational work of "ReflectDamage" by Chernarust. We have significantly expanded upon this foundation, transforming it into a comprehensive auto-moderation tool:
 *   **Advanced Rule Engine:** A sophisticated system validates and elevates configuration settings, ensuring logical consistency and preventing conflicting rules.
 *   **Full PvE Plugin Support:** Seamless integration with existing PvE solutions (like SimplePvE or TruePvE) through full `CanEntityTakeDamage` and `OnEntityTakeDamage` coverage, including a 'tripwire' to confirm hook consumption.
 *   **Discord Notifications:** Configurable webhooks for various violation types, keeping staff and the community informed in real-time.
