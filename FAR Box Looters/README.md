@@ -22,25 +22,6 @@ The original "Box Looters" plugin, while a valuable concept, presented several c
 *   **Item-Level Granularity:** Beyond just recording a loot event, FAR Box Looters logs the exact items that were added `(++)` or removed `(--)` from a container, offering unparalleled insight into item flow.
 *   **Trust & Team Awareness:** Loot events include flags indicating if the player was authorized on the governing Tool Cupboard `(a)` or in a team with the owner `(t)` at the time of the interaction, providing critical context for investigating "inside jobs."
 
-## Configuration
-The plugin provides several configuration options to tailor its behavior to your server's needs. The configuration file `FARBoxLooters.json` can be found in your `oxide/config` (or `carbon/config`) folder after the first load.
-
-```json
-{
-  "ChatLineLimit": 15,      // maximum number of lines for the chat
-  "DbFileName": "FARBoxLooters.sqlite", // SQLite database filename
-  "ExcludeEntities": [      // list of entity types or subtypes to exclude
-    "LootContainer"         // exclude roadside loot, barrels, crates, etc.
-  ],
-  "FlushInterval": 60.0,    // interval in seconds for saving to SQLite database
-  "IncludeEntities": [      // list of entity types or subtypes to include
-    "BasePlayer",           // you can add BasePlayer to register looted sleepers
-    "ContainerIOEntity",    // or ContainerIOEntity for some new shelves in the game
-    "StorageContainer"      // always include this - storage boxes, barrels, etc.
-  ]
-}
-```
-
 ## Changelog
 
 ### 1.2.0 - 2025-09-14
@@ -107,13 +88,29 @@ While FAR Box Looters is still under active development to achieve full feature 
 *   **Contextual Insight:** The `(a)` and `(t)` flags provide crucial information regarding player trust and team dynamics, aiding in the detection of inside jobs or betrayals.
 *   **Permanent Record:** All data is retained until explicitly cleared, providing a complete and accessible history for any past event.
 
+## Configuration
+The plugin provides several configuration options to tailor its behavior to your server's needs. The configuration file `FARBoxLooters.json` can be found in your `oxide/config` (or `carbon/config`) folder after the first load.
+
+```json
+{
+  "ChatLineLimit": 15,      // maximum number of lines for the chat
+  "DbFileName": "FARBoxLooters.sqlite", // SQLite database filename
+  "ExcludeEntities": [      // list of entity types or subtypes to exclude
+    "LootContainer"         // exclude roadside loot, barrels, crates, etc.
+  ],
+  "FlushInterval": 60.0,    // interval in seconds for saving to SQLite database
+  "IncludeEntities": [      // list of entity types or subtypes to include
+    "BasePlayer",           // you can add BasePlayer to register looted sleepers
+    "ContainerIOEntity",    // or ContainerIOEntity for some new shelves in the game
+    "StorageContainer"      // always include this - storage boxes, barrels, etc.
+  ]
+}
+```
+
 ## Installation
 1.  Download the `FARBoxLooters.cs` file.
 2.  Place the file into your server's `oxide/plugins` (or `carbon/plugins`) folder.
 3.  The plugin will automatically load upon server restart or when manually reloaded. The SQLite database file `FARBoxLooters.sqlite` will be created automatically in your `oxide/data` (or `carbon/data`) folder when the plugin first loads.
-
-## Configuration
-No configuration is required for this plugin. It operates out-of-the-box.
 
 ## Localization
 Since this plugin is admin-only all output is English - there are no language files.
