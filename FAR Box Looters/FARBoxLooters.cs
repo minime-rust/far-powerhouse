@@ -410,7 +410,7 @@ namespace Oxide.Plugins
 
             lock (_pendingLock) { _recentlyPickedUpEntities.Add(net.Value); }
 
-            timer.Once(1f, () =>
+            timer.Once(2.5f, () =>
             {
                 lock (_pendingLock) { _recentlyPickedUpEntities.Remove(net.Value); }
             });
