@@ -4,7 +4,7 @@
 This plugin is a derivative work of "Box Looters" by `k1lly0u`. The original license is provided in `ORIGINAL-LICENSE.txt`, and further attribution details can be found in `NOTICE.FARBoxLooters.md`. This derivative work is also licensed under the MIT License.
 
 ## Description
-The **FAR Box Looters** plugin reimagines how server administrators track container interactions in Rust. Inspired by the foundational work of "Box Looters" by `k1lly0u`, this plugin was developed to overcome critical limitations of its predecessor, particularly regarding excessive memory consumption, maintenance, and the granularity of historical data. By pivoting to an efficient SQLite database for persistent storage, FAR Box Looters dramatically reduces server RAM footprint while offering superior detail, including precise item-level changes (what was added, what was removed) for every loot event. This provides an indispensable tool for server owners to investigate suspicious activity, track item movements, and identify potential betrayals with unprecedented clarity.
+The **FAR Box Looters** plugin reimagines how server administrators track container interactions in Rust. Inspired by the foundational work of "Box Looters" by `k1lly0u`, this plugin was developed to overcome critical limitations of its predecessor, particularly regarding excessive memory consumption, maintenance, and the granularity of historical data. By pivoting to an efficient SQLite database for persistent storage, FAR Box Looters dramatically reduces server RAM footprint while offering superior detail, including precise item-level changes (what was added, what was removed) for every loot event. This provides an indispensable tool for server owners to investigate suspicious activity, track item movements, and identify e.g. "inside jobs" with unprecedented clarity.
 
 ![screenshot](FARBoxLooters.webp)
 
@@ -21,6 +21,36 @@ The original "Box Looters" plugin, while a valuable concept, presented several c
 *   **Infinite Data Retention:** With data safely on disk, there's no need to arbitrarily delete history. All events are logged from wipe to wipe (unless manually cleared), providing a complete audit trail.
 *   **Item-Level Granularity:** Beyond just recording a loot event, FAR Box Looters logs the exact items that were added `(++)` or removed `(--)` from a container, offering unparalleled insight into item flow.
 *   **Trust & Team Awareness:** Loot events include flags indicating if the player was authorized on the governing Tool Cupboard `(a)` or in a team with the owner `(t)` at the time of the interaction, providing critical context for investigating "inside jobs."
+
+## Configuration
+The plugin provides several configuration options to tailor its behavior to your server's needs. The configuration file `FARBoxLooters.json` can be found in your `oxide/config` (or `carbon/config`) folder after the first load.
+
+```json
+{
+  "ChatLineLimit": 15,      // maximum number of lines for the chat
+  "DbFileName": "FARBoxLooters.sqlite", // SQLite database filename
+  "ExcludeEntities": [      // list of entity types or subtypes to exclude
+    "LootContainer"         // exclude roadside loot, barrels, crates, etc.
+  ],
+  "FlushInterval": 60.0,    // interval in seconds for saving to SQLite database
+  "IncludeEntities": [      // list of entity types or subtypes to include
+    "BasePlayer",           // you can add BasePlayer to register looted sleepers
+    "ContainerIOEntity",    // or ContainerIOEntity for some new shelves in the game
+    "StorageContainer"      // always include this - storage boxes, barrels, etc.
+  ]
+}
+```
+
+## Changelog
+
+### 1.2.0 - 2025-09-14
+*   **Version Bump:** First public release as FAR Box Looters (1.1.5) bumped to 1.2.0.
+*   **Enhanced Configuration:** Introduced new configuration options for `FlushInterval`, `DbFileName`, and detailed `IncludeEntities` and `ExcludeEntities` lists to precisely control what is tracked.
+*   **Improved Box Status Distinction:** Fixed an issue where "picked up" boxes were incorrectly classified as "destroyed" in history.
+*   **`/box id` Command Enhancement:** The `/box id` command now provides the last known item changes (added/removed) for the specified box's history, mirroring the detail of `/box detail`.
+*   **Custom Lootable Entities:** Users can now define additional entity types to track (e.g., `BasePlayer` for sleeper looting) via the `IncludeEntities` configuration.
+*   **New Console Command `box track`:** Added a command to display a list of all currently tracked lootable entity types directly in the server console, allowing for easy verification of configuration.
+*   **Startup Tracking Output:** The list of tracked entities (from `box track`) is now automatically sent to the server console upon plugin load for immediate reference.
 
 ## Commands
 
@@ -49,7 +79,7 @@ All chat commands require players to have **auth level 1 (moderator) or 2 (owner
 *   `/box id <NetId>`
     *   **Function:** Recalls the loot history for a specific container using its `NetId`.
     *   **Use:** Crucial for investigating boxes that no longer exist (destroyed or picked up).
-    *   **Output:** Same format as `/box`.
+    *   **Output:** Same format as `/box detail`.
 *   `/box near [radius]`
     *   **Function:** Lists all containers within an optional `radius` (default: 10 meters) around the administrator's current position.
     *   **Output:** Includes each box's `NetId` and its current `status` (active, destroyed, picked-up) for further investigation.
@@ -66,8 +96,9 @@ All chat commands require players to have **auth level 1 (moderator) or 2 (owner
 ## RCON Commands
 
 For automated administration and server health monitoring, the following commands can be executed via RCON:
-*   `box diag`
 *   `box clear`
+*   `box diag`
+*   `box track` (Also outputs to server console on plugin load for easy reference.)
 
 ## Current Development & Unique Strengths
 

@@ -2,23 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Database;
 using Oxide.Core.Libraries.Covalence;
-using Oxide.Core.Plugins;
 using Oxide.Core.SQLite.Libraries;
 using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Box Looters", "miniMe", "1.1.5")]
+    [Info("FAR: Box Looters", "miniMe", "1.2.0")]
     [Description("Logs container accesses and item changes into SQLite. Minimal, self-contained, Oxide/Carbon neutral.")]
     public class FARBoxLooters : RustPlugin
     {
         // --- config / constants
-        private const int ChatLineLimit = 15;
-        private const string DbFileName = "FARBoxLooters.sqlite";
-        private const float FlushInterval = 60f; // seconds
+        private int ChatLineLimit;   // prevent chat being flooded
+        private string DbFileName;   // how to call the database file
+        private float FlushInterval; // interval in seconds to save SQLite
 
         // --- Oxide SQLite
         private Connection _conn;
@@ -33,9 +33,10 @@ namespace Oxide.Plugins
         #region Oxide lifecycle
         private void Init()
         {
+            LoadConfigValues();
             EnsureDb();
             OpenConnection();
-            CreateTables(); // creates tables + indexes
+            CreateTables();     // creates tables + indexes
 
             cmd.AddChatCommand("box", this, "CmdBoxChat");
             cmd.AddConsoleCommand("box", this, "CmdBoxConsole");
@@ -48,6 +49,51 @@ namespace Oxide.Plugins
             TryFlushQueued(true);
             CloseConnection();
         }
+        #endregion
+
+        #region Config
+        private PluginConfig _config;
+        private HashSet<Type> _trackedEntityTypes;
+        private class PluginConfig
+        {
+            public int ChatLineLimit { get; set; } = 15;    // limit lines to output to chat
+            public float FlushInterval { get; set; } = 60f; // set interval to save to SQLite database
+            public string DbFileName { get; set; } = "FARBoxLooters.sqlite"; // set name of database file
+            public List<string> IncludeEntities { get; set; } = new List<string>
+            { "StorageContainer" };                     // sensible default
+            public List<string> ExcludeEntities { get; set; } = new List<string>
+            { "LootContainer" };                        // exclude temporary loot bags, barrels, etc.
+        }
+
+        private PluginConfig GetDefaultConfig() => new PluginConfig();
+
+        protected override void LoadDefaultConfig() => _config = GetDefaultConfig();
+
+        private void LoadConfigValues()
+        {
+            try
+            {
+                _config = Config.ReadObject<PluginConfig>();
+                if (_config == null) throw new Exception("Config null, resetting.");
+            }
+            catch
+            {
+                PrintWarning("Creating new config file.");
+                _config = GetDefaultConfig();
+            }
+            SaveConfig();
+
+            // Sanitize global variables from config which is now ensured
+            ChatLineLimit = Mathf.Clamp(_config.ChatLineLimit, 5, 15);
+            FlushInterval = Mathf.Clamp(_config.FlushInterval, 60f, 300f);
+            DbFileName = string.IsNullOrWhiteSpace(_config.DbFileName)
+                       ? "FARBoxLooters.sqlite"
+                       : _config.DbFileName;
+
+            // Build tracked entity set
+            ResolveEntityTypes();
+        }
+
         #endregion
 
         #region Database setup
@@ -154,7 +200,7 @@ namespace Oxide.Plugins
         {
             if (ent == null) return;
             // only store real storage containers (exclude ephemeral LootContainer subclasses)
-            if (!(ent is StorageContainer) || (ent is LootContainer)) return;
+            if (!ShouldTrackEntity(ent)) return;
 
             var net = ent.net?.ID ?? default(NetworkableId);
             if (!net.IsValid) return;
@@ -162,7 +208,7 @@ namespace Oxide.Plugins
 
             var prefab = ent.ShortPrefabName ?? ent.PrefabName ?? "unknown";
             var pos = ent.transform.position;
-            ulong ownerId = (ent as StorageContainer)?.OwnerID ?? 0;
+            ulong ownerId = ent?.OwnerID ?? 0;
 
             EnqueueWrite(() =>
             {
@@ -180,7 +226,7 @@ namespace Oxide.Plugins
         private void RecordLootQueued(BasePlayer player, BaseEntity ent)
         {
             if (player == null || ent == null) return;
-            if (!(ent is StorageContainer) || (ent is LootContainer)) return;
+            if (!ShouldTrackEntity(ent)) return;
 
             var net = ent.net?.ID ?? default(NetworkableId);
             if (!net.IsValid) return;
@@ -304,17 +350,19 @@ namespace Oxide.Plugins
             int pendingCount;
             int lastLootCount;
             int nameCacheCount;
+            int pickupCount;
 
             lock (_queueLock) queuedCount = _writeQueue.Count;
             lock (_pendingLock)
             {
                 pendingCount = pendingItems.Count;
                 lastLootCount = lastLootForContainer.Count;
+                pickupCount = _recentlyPickedUpEntities.Count;
             }
             nameCacheCount = _nameCache.Count;
 
             // Single-line message — cheap and easy to grep in server logs.
-            Puts($"diag: queuedSql={queuedCount}, pendingItems={pendingCount}, lastLootEntries={lastLootCount}, nameCache={nameCacheCount}");
+            Puts($"diag: queuedSql={queuedCount}, pendingItems={pendingCount}, lastLootEntries={lastLootCount}, pickupCount={pickupCount}, nameCache={nameCacheCount}");
         }
 
         // Track who is actively looting a container
@@ -324,11 +372,11 @@ namespace Oxide.Plugins
         private void OnLootEntity(BasePlayer player, BaseEntity entity)
         {
             if (player == null || player.IsNpc) return;
-            if (!(entity is StorageContainer sc) || (entity is LootContainer)) return;
+            if (!ShouldTrackEntity(entity)) return;
 
             RecordLootQueued(player, entity);
 
-            var net = sc.net?.ID ?? default(NetworkableId);
+            var net = entity.net?.ID ?? default(NetworkableId);
             if (!net.IsValid) return;
             ulong netId = net.Value;
 
@@ -341,74 +389,65 @@ namespace Oxide.Plugins
         // When they stop looting, remove them
         private void OnLootEntityEnd(BasePlayer player, BaseEntity entity)
         {
-            if (entity is StorageContainer sc)
-            {
-                var net = sc.net?.ID ?? default(NetworkableId);
-                if (!net.IsValid) return;
-                ulong netId = net.Value;
+            if (!ShouldTrackEntity(entity)) return;
 
-                lock (_pendingLock)
-                {
-                    activeLooters.Remove(netId);
-                }
-            }
+            var net = entity.net?.ID ?? default(NetworkableId);
+            if (!net.IsValid) return;
+            ulong netId = net.Value;
+
+            lock (_pendingLock)
+            { activeLooters.Remove(netId); }
+        }
+
+        private readonly HashSet<ulong> _recentlyPickedUpEntities = new HashSet<ulong>();
+
+        object CanPickupEntity(BasePlayer player, BaseEntity entity)
+        {
+            if (!ShouldTrackEntity(entity)) return null;
+
+            var net = entity.net?.ID ?? default(NetworkableId);
+            if (!net.IsValid) return null;
+
+            lock (_pendingLock) { _recentlyPickedUpEntities.Add(net.Value); }
+
+            timer.Once(1f, () =>
+            {
+                lock (_pendingLock) { _recentlyPickedUpEntities.Remove(net.Value); }
+            });
+
+            return null; // don’t block pickup
         }
 
         private void OnEntityKill(BaseNetworkable entity)
         {
             var be = entity as BaseEntity; if (be == null) return;
-            if (!(be is StorageContainer) || (be is LootContainer)) return;
+            if (!ShouldTrackEntity(be)) return;
 
             var net = be.net?.ID ?? default(NetworkableId);
             if (!net.IsValid) return;
             ulong netId = net.Value;
 
-            EnqueueWrite(() =>
-            {
-                var sql = Sql.Builder.Append(
-                    "UPDATE boxes SET destroyed_at=@0 WHERE netid=@1;",
-                    DateTime.UtcNow.ToString("o"),
-                    (long)netId
-                );
-                _sqlite.ExecuteNonQuery(sql, _conn);
-            });
-
-            // Remove any cached last-loot reference for this container to avoid unbounded growth.
+            // Determine if the box was picked up by a player (hammer) or destroyed
+            bool pickedUp;
             lock (_pendingLock)
             {
-                if (lastLootForContainer.ContainsKey(netId))
-                    lastLootForContainer.Remove(netId);
-                if (pendingItems.ContainsKey(netId))
-                    pendingItems.Remove(netId);
+                pickedUp = _recentlyPickedUpEntities.Remove(netId);
+                // Remove any cached last-loot reference for this container to avoid unbounded growth.
+                lastLootForContainer.Remove(netId);
+                pendingItems.Remove(netId);
             }
-        }
-
-        object OnItemPickup(Item item, BasePlayer player)
-        {
-            if (item == null || player == null) return null;
-
-            var entity = item.GetWorldEntity() as BaseEntity ?? item.parent?.entityOwner as BaseEntity;
-            if (entity == null) return null;
-
-            var box = entity.GetComponent<StorageContainer>();
-            if (box == null) return null;
-            if (box is LootContainer) return null;
-
-            var net = box.net?.ID ?? default(NetworkableId);
-            if (!net.IsValid) return null;
-            ulong netId = net.Value;
 
             EnqueueWrite(() =>
             {
                 var sql = Sql.Builder.Append(
-                    "UPDATE boxes SET pickedup_at=@0 WHERE netid=@1;",
+                    pickedUp
+                        ? "UPDATE boxes SET pickedup_at=@0 WHERE netid=@1;"
+                        : "UPDATE boxes SET destroyed_at=@0 WHERE netid=@1;",
                     DateTime.UtcNow.ToString("o"),
                     (long)netId
                 );
                 _sqlite.ExecuteNonQuery(sql, _conn);
             });
-
-            return null;
         }
 
         // Updated item change hooks
@@ -416,8 +455,11 @@ namespace Oxide.Plugins
         {
             try
             {
-                var ent = container.entityOwner as BaseEntity; if (ent == null) return;
-                var net = ent.net?.ID ?? default(NetworkableId); if (!net.IsValid) return;
+                var ent = container.entityOwner as BaseEntity;
+                if (!ShouldTrackEntity(ent)) return;
+
+                var net = ent.net?.ID ?? default(NetworkableId);
+                if (!net.IsValid) return;
                 ulong netId = net.Value;
 
                 BasePlayer looter;
@@ -436,8 +478,11 @@ namespace Oxide.Plugins
         {
             try
             {
-                var ent = container.entityOwner as BaseEntity; if (ent == null) return;
-                var net = ent.net?.ID ?? default(NetworkableId); if (!net.IsValid) return;
+                var ent = container.entityOwner as BaseEntity;
+                if (!ShouldTrackEntity(ent)) return;
+
+                var net = ent.net?.ID ?? default(NetworkableId);
+                if (!net.IsValid) return;
                 ulong netId = net.Value;
 
                 BasePlayer looter;
@@ -469,39 +514,23 @@ namespace Oxide.Plugins
             var player = arg.Player() as BasePlayer;
 
             // If called from the *server console*, player will be null. We still support
-            // a few admin commands from server console (help, diag, clear).
+            // a few admin commands from server console (clear, diag, tracked).
             if (player == null)
             {
                 // Handle a small safe subset from server console.
                 var args = arg.Args ?? new string[0];
                 if (args.Length == 0 || args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
                 {
-                    Puts("box <command> - available commands: help, diag, clear");
-                    Puts("  diag - print plugin diag info to server console");
+                    Puts("box <command> - available commands: help, clear, diag, track");
                     Puts("  clear - wipe DB (server console only; no confirmation)");
+                    Puts("  diag  - print plugin diagnosis info to server console");
+                    Puts("  track - print tracked entities info to server console");
                     return;
                 }
 
                 var cmd = args[0].ToLowerInvariant();
                 switch (cmd)
                 {
-                    case "diag":
-                        // Print diag summary (same values as OnServerSave prints).
-                        int queuedCount;
-                        int pendingCount;
-                        int lastLootCount;
-                        int nameCacheCount;
-                        lock (_queueLock) queuedCount = _writeQueue.Count;
-                        lock (_pendingLock)
-                        {
-                            pendingCount = pendingItems.Count;
-                            lastLootCount = lastLootForContainer.Count;
-                        }
-                        nameCacheCount = _nameCache.Count;
-
-                        Puts($"diag: queuedSql={queuedCount}, pendingItems={pendingCount}, lastLootEntries={lastLootCount}, nameCache={nameCacheCount}");
-                        break;
-
                     case "clear":
                         // server console: perform immediate clear
                         CloseConnection();
@@ -509,11 +538,42 @@ namespace Oxide.Plugins
                         EnsureDb();
                         OpenConnection();
                         CreateTables();
-                        Puts("FAR:BoxLooters: database cleared and re-created.");
+                        Puts("clear: database cleared and re-created");
+                        break;
+
+                    case "diag":
+                        // Print diag summary (same values as OnServerSave prints).
+                        int queuedCount;
+                        int pendingCount;
+                        int lastLootCount;
+                        int nameCacheCount;
+                        int pickupCount;
+                        lock (_queueLock) queuedCount = _writeQueue.Count;
+                        lock (_pendingLock)
+                        {
+                            pendingCount = pendingItems.Count;
+                            pickupCount = _recentlyPickedUpEntities.Count;
+                            lastLootCount = lastLootForContainer.Count;
+                        }
+
+                        nameCacheCount = _nameCache.Count;
+
+                        Puts($"diag: queuedSql={queuedCount}, pendingItems={pendingCount}, lastLootEntries={lastLootCount}, pickupCount={pickupCount}, nameCache={nameCacheCount}");
+                        break;
+
+                    case "track":
+                        if (_trackedEntityTypes == null || _trackedEntityTypes.Count == 0)
+                        {
+                            Puts("tracked: no tracked entity types resolved");
+                            return;
+                        }
+
+                        var names = string.Join(", ", _trackedEntityTypes);
+                        Puts($"tracked: we're tracking {_trackedEntityTypes.Count} entity types:\n{names}");
                         break;
 
                     default:
-                        Puts($"Unknown console-box command '{cmd}'. Use 'help'.");
+                        Puts($"unknown: unknown console command 'box {cmd}'. Use 'box help'.");
                         break;
                 }
                 return;
@@ -565,21 +625,24 @@ namespace Oxide.Plugins
                     int pendingCountDiag;
                     int lastLootDiag;
                     int nameCacheDiag;
+                    int pickupCount;
+
                     lock (_queueLock) queuedCountDiag = _writeQueue.Count;
                     lock (_pendingLock)
                     {
                         pendingCountDiag = pendingItems.Count;
                         lastLootDiag = lastLootForContainer.Count;
+                        pickupCount = _recentlyPickedUpEntities.Count;
                     }
                     nameCacheDiag = _nameCache.Count;
 
-                    requester.ChatMessage($"[FAR: Box Looters]\nqueuedSql={queuedCountDiag}, pendingItems={pendingCountDiag},\nlastLootEntries={lastLootDiag}, nameCache={nameCacheDiag}");
+                    requester.ChatMessage($"\"/box diag\": queuedSql={queuedCountDiag}, pendingItems={pendingCountDiag},\nlastLootEntries={lastLootDiag}, pickupCount={pickupCount}, nameCache={nameCacheDiag}");
                     break;
 
                 case "id":
                     if (args.Length < 2) { requester.ChatMessage("Usage: box id <netid>"); return; }
                     if (!ulong.TryParse(args[1], out var id)) { requester.ChatMessage("Invalid netid"); return; }
-                    AsyncDescribeBoxCompact(requester, id);
+                    AsyncDescribeBoxDetail(requester, id, ChatLineLimit);
                     break;
 
                 case "near":
@@ -609,9 +672,9 @@ namespace Oxide.Plugins
 
                 case "detail":
                     int lines = 25; if (args.Length >= 2) int.TryParse(args[1], out lines);
-                    var looking = FindLookEntity(requester);
-                    if (looking == null) { requester.ChatMessage("No box found where you're looking."); return; }
-                    var nidStruct = looking.net?.ID ?? default(NetworkableId);
+                    var look = FindLookEntity(requester);
+                    if (look == null) { requester.ChatMessage("No box found where you're looking."); return; }
+                    var nidStruct = look.net?.ID ?? default(NetworkableId);
                     if (!nidStruct.IsValid) { requester.ChatMessage("Entity has no valid NetId."); return; }
                     AsyncDescribeBoxDetail(requester, nidStruct.Value, lines);
                     break;
@@ -809,8 +872,8 @@ namespace Oxide.Plugins
                 if (Vector3.Distance(center, pos) <= radius)
                 {
                     var status = "active:";
-                    if (!string.IsNullOrEmpty(destroyed)) status = "<color=#ff5555>destroyed:</color>";
                     if (!string.IsNullOrEmpty(picked)) status = "<color=#ff5555>picked up:</color>";
+                    else if (!string.IsNullOrEmpty(destroyed)) status = "<color=#ff5555>destroyed:</color>";
                     result.Add($"{status} <color=#55ff55>{prefab}</color> ({net})\nteleportpos ({pos.x:0.0}, {pos.y:0.0}, {pos.z:0.0})");
                 }
             }
@@ -857,10 +920,11 @@ namespace Oxide.Plugins
         private BaseEntity FindLookEntity(BasePlayer player)
         {
             var ray = new Ray(player.eyes.position, player.eyes.HeadForward());
-            if (Physics.Raycast(ray, out var hit, 6f, LayerMask.GetMask("Deployed")))
+            if (Physics.Raycast(ray, out var hit, 6f))
             {
                 var ent = hit.collider.GetComponentInParent<BaseEntity>();
-                return ent;
+                if (ent != null && ShouldTrackEntity(ent))
+                    return ent;
             }
             return null;
         }
@@ -992,6 +1056,45 @@ namespace Oxide.Plugins
                 if (!any) lines.Add("  <no looters recorded>");
                 callback(lines);
             });
+        }
+
+        private void ResolveEntityTypes()
+        {
+            var includeNames = new HashSet<string>(_config.IncludeEntities, StringComparer.OrdinalIgnoreCase);
+            var excludeNames = new HashSet<string>(_config.ExcludeEntities, StringComparer.OrdinalIgnoreCase);
+
+            var resolved = new HashSet<Type>();
+
+            foreach (var t in typeof(BaseEntity).Assembly.GetTypes())
+            {
+                if (!t.IsSubclassOf(typeof(BaseEntity))) continue;
+
+                var name = t.Name;
+
+                // Exclusion always wins
+                if (excludeNames.Contains(name)) continue;
+
+                // Include if explicitly listed OR if base class is listed
+                if (includeNames.Contains(name) ||
+                    includeNames.Contains(t.BaseType?.Name ?? string.Empty))
+                { resolved.Add(t); }
+            }
+
+            _trackedEntityTypes = resolved;
+
+            // Build a string of names manually
+            var namesList = new List<string>();
+            foreach (var type in _trackedEntityTypes)
+            { namesList.Add(type.Name); }
+
+            Puts($"Tracking {_trackedEntityTypes.Count} entity types: {string.Join(", ", namesList)}");
+        }
+
+        // --- helper: include or exclude entity fast in hot path ---
+        private bool ShouldTrackEntity(BaseEntity ent)
+        {
+            if (ent == null) return false;
+            return _trackedEntityTypes.Contains(ent.GetType());
         }
 
         // --- helper: safe numeric conversion from DB row values ---
