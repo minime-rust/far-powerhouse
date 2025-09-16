@@ -996,7 +996,7 @@ namespace Oxide.Plugins
                     statusText = !string.IsNullOrEmpty(pickedup) ? "picked up" : "destroyed";
 
                     DateTime dt;
-                    overlayText = DateTime.TryParse(pickedup ?? destroyed, out dt)
+                    overlayText = DateTime.TryParse(string.IsNullOrEmpty(pickedup) ? destroyed : pickedup, out dt)
                         ? $"<size=20>{prefab}\n{statusText} ({netId})\n{dt:yyyy-MM-dd HH:mm} UTC</size>"
                         : $"<size=20>{prefab}\n{statusText} ({netId})</size>";
                 }
