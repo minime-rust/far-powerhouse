@@ -24,6 +24,11 @@ The original "Box Looters" plugin, while a valuable concept, presented several c
 
 ## Changelog
 
+### 1.2.1 - 2025-09-16
+*   **Sanitized Configuration:** Reverted `DbFileName` to be non-configurable. Making that configurable was stupid.
+*   **Added wipe detection:** Borrowed code from "Box Looters" by `k1lly0u` to detect wipes and remove / recreate the database.
+*   **Added wireframe display:** Borrowed code from "Box Looters" by `k1lly0u` to replace bulky chat output with a wireframe debug overlay. It now highlights destroyed and picked-up boxes with extra information.
+
 ### 1.2.0 - 2025-09-14
 *   **Version Bump:** First public release as FAR Box Looters (1.1.5) bumped to 1.2.0.
 *   **Enhanced Configuration:** Introduced new configuration options for `FlushInterval`, `DbFileName`, and detailed `IncludeEntities` and `ExcludeEntities` lists to precisely control what is tracked.
@@ -61,11 +66,11 @@ All chat commands require players to have **auth level 1 (moderator) or 2 (owner
     *   **Function:** Recalls the loot history for a specific container using its `NetId`.
     *   **Use:** Crucial for investigating boxes that no longer exist (destroyed or picked up).
     *   **Output:** Same format as `/box detail`.
-*   `/box near [radius]`
-    *   **Function:** Lists all containers within an optional `radius` (default: 10 meters) around the administrator's current position.
+*   `/box near [radius]` *(radius can be 1-100m)*
+    *   **Function:** Lists all containers within an optional `radius` (default: 20 meters) around the administrator's current position.
     *   **Output:** Includes each box's `NetId` and its current `status` (active, destroyed, picked-up) for further investigation.
-*   `/box player <player_name_or_SteamID> [radius]`
-    *   **Function:** Filters the list of boxes around the administrator (within an optional `radius`, default: 10 meters) to show only those looted by the specified `player`. The player name can be partial or a SteamID.
+*   `/box player <player_name_or_SteamID> [radius]` *(radius can be 1-100m)*
+    *   **Function:** Filters the list of boxes around the administrator (within an optional `radius`, default: 20 meters) to show only those looted by the specified `player`. The player name can be partial or a SteamID.
     *   **Output:** Lists relevant boxes with their `NetId` and `status`.
 
 ## Performance & Data Management
@@ -83,10 +88,10 @@ For automated administration and server health monitoring, the following command
 
 ## Current Development & Unique Strengths
 
-While FAR Box Looters is still under active development to achieve full feature parity with the original plugin's advanced debug overlays for destroyed boxes, it already offers unique advantages:
+While FAR Box Looters should now be en par feature-wise with the original "Box Looters" plugin, it offers unique advantages:
 *   **Unparalleled Item Detail:** The ability to see exactly *what* items were moved in and out of a box is a game-changer for investigations.
-*   **Contextual Insight:** The `(a)` and `(t)` flags provide crucial information regarding player trust and team dynamics, aiding in the detection of inside jobs or betrayals.
-*   **Permanent Record:** All data is retained until explicitly cleared, providing a complete and accessible history for any past event.
+*   **Contextual Insight:** The `(a)` and `(t)` flags provide crucial information regarding player trust and team dynamics, aiding in the detection of e.g. "inside jobs".
+*   **Permanent Record:** All data is retained until explicitly cleared or a server wipe occurred, providing a complete and accessible history for any past event.
 
 ## Configuration
 The plugin provides several configuration options to tailor its behavior to your server's needs. The configuration file `FARBoxLooters.json` can be found in your `oxide/config` (or `carbon/config`) folder after the first load.
@@ -94,15 +99,20 @@ The plugin provides several configuration options to tailor its behavior to your
 ```json
 {
   "ChatLineLimit": 15,      // maximum number of lines for the chat
-  "DbFileName": "FARBoxLooters.sqlite", // SQLite database filename
   "ExcludeEntities": [      // list of entity types or subtypes to exclude
-    "LootContainer"         // exclude roadside loot, barrels, crates, etc.
+    "LootContainer"         // always (!) EXCLUDE roadside loot, barrels, crates, etc.
   ],
   "FlushInterval": 60.0,    // interval in seconds for saving to SQLite database
   "IncludeEntities": [      // list of entity types or subtypes to include
     "BasePlayer",           // you can add BasePlayer to register looted sleepers
+    "BuildingPrivilegeRetro", // you should include this TC (the other 2 are already)
     "ContainerIOEntity",    // or ContainerIOEntity for some new shelves in the game
-    "StorageContainer"      // always include this - storage boxes, barrels, etc.
+    "CookingWorkbench",     // you may want to include this new workbench
+    "DropBox",              // or this
+    "ElectricOven",         // and this
+    "MiningQuarry",         // default value from orginal "Box Looters"
+    "ResourceExtractorFuelStorage", // default value - e.g. Giant Excavator fuel tank
+    "StorageContainer"      // default value, always INCLUDE this - storage boxes, etc.
   ]
 }
 ```

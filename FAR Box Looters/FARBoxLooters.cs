@@ -11,13 +11,13 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Box Looters", "miniMe", "1.2.0")]
+    [Info("FAR: Box Looters", "miniMe", "1.2.1")]
     [Description("Logs container accesses and item changes into SQLite. Minimal, self-contained, Oxide/Carbon neutral.")]
     public class FARBoxLooters : RustPlugin
     {
-        // --- config / constants
+        // --- config + constants
         private int ChatLineLimit;   // prevent chat being flooded
-        private string DbFileName;   // how to call the database file
+        private const string DbFileName = "FARBoxLooters.sqlite"; // database filename
         private float FlushInterval; // interval in seconds to save SQLite
 
         // --- Oxide SQLite
@@ -31,23 +31,37 @@ namespace Oxide.Plugins
         private readonly List<Action> _writeQueue = new List<Action>();
 
         #region Oxide lifecycle
+        // borrowed from original Box Looters: detect a wipe
+        private bool eraseData = false;
+        private void OnNewSave(string filename) => eraseData = true;
+
         private void Init()
         {
             LoadConfigValues();
-            EnsureDb();
-            OpenConnection();
-            CreateTables();     // creates tables + indexes
 
             cmd.AddChatCommand("box", this, "CmdBoxChat");
             cmd.AddConsoleCommand("box", this, "CmdBoxConsole");
-
-            timer.Every(FlushInterval, TryFlushQueued);
         }
 
         private void Unload()
         {
             TryFlushQueued(true);
             CloseConnection();
+        }
+
+        private void OnServerInitialized()
+        {
+            if (eraseData && File.Exists(DbPath))
+            {
+                File.Delete(DbPath);
+                Puts("Detected map wipe → database reset");
+            }
+
+            EnsureDb();
+            OpenConnection();
+            CreateTables();
+
+            timer.Every(FlushInterval, TryFlushQueued);
         }
         #endregion
 
@@ -58,9 +72,8 @@ namespace Oxide.Plugins
         {
             public int ChatLineLimit { get; set; } = 15;    // limit lines to output to chat
             public float FlushInterval { get; set; } = 60f; // set interval to save to SQLite database
-            public string DbFileName { get; set; } = "FARBoxLooters.sqlite"; // set name of database file
             public List<string> IncludeEntities { get; set; } = new List<string>
-            { "StorageContainer" };                     // sensible default
+            { "StorageContainer", "MiningQuarry", "ResourceExtractorFuelStorage" }; // BoxLooters.cs default
             public List<string> ExcludeEntities { get; set; } = new List<string>
             { "LootContainer" };                        // exclude temporary loot bags, barrels, etc.
         }
@@ -86,9 +99,6 @@ namespace Oxide.Plugins
             // Sanitize global variables from config which is now ensured
             ChatLineLimit = Mathf.Clamp(_config.ChatLineLimit, 5, 15);
             FlushInterval = Mathf.Clamp(_config.FlushInterval, 60f, 300f);
-            DbFileName = string.IsNullOrWhiteSpace(_config.DbFileName)
-                       ? "FARBoxLooters.sqlite"
-                       : _config.DbFileName;
 
             // Build tracked entity set
             ResolveEntityTypes();
@@ -338,13 +348,9 @@ namespace Oxide.Plugins
             TryFlushQueued();
 
             // small safety net, prevents stale entries
-            lock (_pendingLock)
-            {
-                lastLootForContainer.Clear();
-            }
+            lock (_pendingLock) { lastLootForContainer.Clear(); }
 
-            // Emit a single-line health/diag summary to the server console so admins can
-            // quickly monitor plugin health without multiple chat lines.
+            // Emit a single-line health/diag summary to the server console.
             // This is intentionally light-weight: one formatted string per server save.
             int queuedCount;
             int pendingCount;
@@ -380,10 +386,7 @@ namespace Oxide.Plugins
             if (!net.IsValid) return;
             ulong netId = net.Value;
 
-            lock (_pendingLock)
-            {
-                activeLooters[netId] = player;
-            }
+            lock (_pendingLock) { activeLooters[netId] = player; }
         }
 
         // When they stop looting, remove them
@@ -395,8 +398,7 @@ namespace Oxide.Plugins
             if (!net.IsValid) return;
             ulong netId = net.Value;
 
-            lock (_pendingLock)
-            { activeLooters.Remove(netId); }
+            lock (_pendingLock) { activeLooters.Remove(netId); }
         }
 
         private readonly HashSet<ulong> _recentlyPickedUpEntities = new HashSet<ulong>();
@@ -410,6 +412,7 @@ namespace Oxide.Plugins
 
             lock (_pendingLock) { _recentlyPickedUpEntities.Add(net.Value); }
 
+            // We had that at 1 second before. Pickup should be 1.0 < 2.5 seconds
             timer.Once(2.5f, () =>
             {
                 lock (_pendingLock) { _recentlyPickedUpEntities.Remove(net.Value); }
@@ -429,13 +432,8 @@ namespace Oxide.Plugins
 
             // Determine if the box was picked up by a player (hammer) or destroyed
             bool pickedUp;
-            lock (_pendingLock)
-            {
-                pickedUp = _recentlyPickedUpEntities.Remove(netId);
-                // Remove any cached last-loot reference for this container to avoid unbounded growth.
-                lastLootForContainer.Remove(netId);
-                pendingItems.Remove(netId);
-            }
+
+            lock (_pendingLock) { pickedUp = _recentlyPickedUpEntities.Remove(netId); }
 
             EnqueueWrite(() =>
             {
@@ -646,30 +644,33 @@ namespace Oxide.Plugins
                     break;
 
                 case "near":
-                    double radius = 10.0;
-                    if (args.Length >= 2) double.TryParse(args[1], out radius);
-                    AsyncFindBoxesNear(requester, requester.transform.position, radius);
-                    break;
-
-                case "player":
-                    if (args.Length < 2)
                     {
-                        requester.ChatMessage("Usage: box player <partialname/id> <opt:radius>");
-                        return;
+                        double radius = 20.0;
+                        if (args.Length >= 2) double.TryParse(args[1], out radius);
+                        radius = Math.Clamp(radius, 1.0, 100.0); // clamp 1–100m, default 20
+                        AsyncFindBoxesNear(requester, requester.transform.position, radius);
+                        break;
                     }
-                    double r2 = 50.0;
-                    if (args.Length >= 3)
-                        double.TryParse(args[2], out r2);
-
-                    ResolveSteamIdOrName(args[1], steamId =>
+                case "player":
                     {
-                        if (steamId != 0)
-                            AsyncFindPlayerLootsBySteamId(requester, steamId, requester.transform.position, r2);
-                        else
-                            requester.ChatMessage($"No player found matching '{args[1]}'.");
-                    });
-                    break;
+                        if (args.Length < 2)
+                        {
+                            requester.ChatMessage("Usage: box player <partialname/id> <opt:radius>");
+                            return;
+                        }
+                        double radius = 20.0;
+                        if (args.Length >= 3) double.TryParse(args[2], out radius);
+                        radius = Math.Clamp(radius, 1.0, 100.0); // clamp 1–100m
 
+                        ResolveSteamIdOrName(args[1], steamId =>
+                        {
+                            if (steamId != 0)
+                                AsyncFindPlayerLootsBySteamId(requester, steamId, requester.transform.position, radius);
+                            else
+                                requester.ChatMessage($"No player found matching '{args[1]}'.");
+                        });
+                        break;
+                    }
                 case "detail":
                     int lines = 25; if (args.Length >= 2) int.TryParse(args[1], out lines);
                     var look = FindLookEntity(requester);
@@ -690,7 +691,7 @@ namespace Oxide.Plugins
         {
             p.ChatMessage("/box - show info for box you're looking at");
             p.ChatMessage("/box id <netid> - show info for box with NetId");
-            p.ChatMessage("/box near <radius> - overlay boxes in radius (default 10m)");
+            p.ChatMessage("/box near <radius> - overlay boxes in radius (default 20m)");
             p.ChatMessage("/box player <partialname/id> <opt:radius> - overlay boxes touched by player");
             p.ChatMessage("/box detail <lines> - show last <lines> item transactions for the box you're looking at (console preferred)");
             p.ChatMessage("/box clear - wipe all recorded data (auth level 2)");
@@ -820,11 +821,23 @@ namespace Oxide.Plugins
             var sql = Sql.Builder.Append("SELECT netid,prefab,x,y,z,destroyed_at,pickedup_at FROM boxes;");
             _sqlite.Query(sql, _conn, results =>
             {
-                // Format rows into lines using shared formatter (already returns a List<string>)
                 var boxLines = FormatBoxRows(results, center, radius);
 
                 if (boxLines.Count == 0) boxLines.Add("No boxes found in radius.");
-                timer.Once(0f, () => DrawOverlay(player, boxLines, 60f)); // DrawOverlay will chat the lines
+
+                // Filter the actual rows for overlay
+                var filteredRows = new List<IDictionary<string, object>>();
+                foreach (var row in results)
+                {
+                    var x = ToDouble(row["x"]);
+                    var y = ToDouble(row["y"]);
+                    var z = ToDouble(row["z"]);
+                    var pos = new Vector3((float)x, (float)y, (float)z);
+                    if (Vector3.Distance(center, pos) <= radius)
+                        filteredRows.Add(row);
+                }
+
+                timer.Once(0f, () => DrawWireframeOverlay(player, filteredRows, 60f));
             });
         }
 
@@ -844,12 +857,37 @@ namespace Oxide.Plugins
 
             _sqlite.Query(sql, _conn, results =>
             {
-                // Format rows (FormatBoxRows still checks radius; harmless double-check)
-                var boxLines = FormatBoxRows(results, center, radius);
-                if (boxLines == null || boxLines.Count == 0)
-                    boxLines = new List<string> { "No loots found for that player in radius." };
+                // No results at all from DB
+                if (results == null || results.Count == 0)
+                {
+                    timer.Once(0f, () => player.ChatMessage("No loots found for that player in radius."));
+                    return;
+                }
 
-                timer.Once(0f, () => DrawOverlay(player, boxLines, 60f));
+                // Ensure drawing happens on main thread and re-filter rows precisely by radius
+                timer.Once(0f, () =>
+                {
+                    var filteredRows = new List<IDictionary<string, object>>();
+                    foreach (var row in results)
+                    {
+                        // Defensive: make sure keys exist and parse safely
+                        var x = ToDouble(row.ContainsKey("x") ? row["x"] : null);
+                        var y = ToDouble(row.ContainsKey("y") ? row["y"] : null);
+                        var z = ToDouble(row.ContainsKey("z") ? row["z"] : null);
+                        var pos = new Vector3((float)x, (float)y, (float)z);
+
+                        if (Vector3.Distance(center, pos) <= radius)
+                            filteredRows.Add(row);
+                    }
+
+                    if (filteredRows.Count == 0)
+                    {
+                        player.ChatMessage("No loots found for that player in radius.");
+                        return;
+                    }
+
+                    DrawWireframeOverlay(player, filteredRows, 60f);
+                });
             });
         }
 
@@ -929,17 +967,48 @@ namespace Oxide.Plugins
             return null;
         }
 
-        private void DrawOverlay(BasePlayer player, List<string> boxes, float duration)
+        // Helper: draw wireframe overlay for a list of boxes (borrowed from BoxLooters.cs)
+        private void DrawWireframeOverlay(BasePlayer player, IEnumerable<IDictionary<string, object>> rows, float duration)
         {
-            // Fallback: chat listing. Cap at ChatLineLimit unless user asked console.
             if (player == null) return;
-            player.ChatMessage("Overlay not available (using chat listing):");
-            var shown = 0;
-            foreach (var l in boxes)
+
+            foreach (var row in rows)
             {
-                player.ChatMessage(l);
-                shown++;
-                if (shown >= ChatLineLimit) break;
+                if (!TryGetNetId(row["netid"], out var netId)) continue;
+
+                var prefab = row["prefab"]?.ToString() ?? "";
+                var x = ToDouble(row["x"]);
+                var y = ToDouble(row["y"]);
+                var z = ToDouble(row["z"]);
+                var pos = new Vector3((float)x, (float)y, (float)z);
+
+                Color statusColor;
+                var statusText = "active";
+                var overlayText = string.Empty;
+
+                // Get timestamps
+                var pickedup = row["pickedup_at"]?.ToString();
+                var destroyed = row["destroyed_at"]?.ToString();
+
+                if (!string.IsNullOrEmpty(pickedup) || !string.IsNullOrEmpty(destroyed))
+                {
+                    statusColor = new Color(1f, 0.333f, 0.333f); // #ff5555
+                    statusText = !string.IsNullOrEmpty(pickedup) ? "picked up" : "destroyed";
+
+                    DateTime dt;
+                    overlayText = DateTime.TryParse(pickedup ?? destroyed, out dt)
+                        ? $"<size=20>{prefab}\n{statusText} ({netId})\n{dt:yyyy-MM-dd HH:mm} UTC</size>"
+                        : $"<size=20>{prefab}\n{statusText} ({netId})</size>";
+                }
+                else
+                {
+                    statusColor = Color.green;
+                    overlayText = $"<size=20>{statusText} ({netId})</size>";
+                }
+
+                // Draw text & wireframe box
+                player.SendConsoleCommand("ddraw.text", duration, statusColor, pos + new Vector3(0, 1.5f, 0), overlayText);
+                player.SendConsoleCommand("ddraw.box", duration, Color.yellow, pos, 1f);
             }
         }
         #endregion
