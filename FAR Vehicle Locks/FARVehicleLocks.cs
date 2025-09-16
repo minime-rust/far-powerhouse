@@ -727,12 +727,14 @@ namespace Oxide.Plugins
                 if (string.IsNullOrEmpty(typeKey)) continue;
                 if (!IsDecayable(ent, typeKey)) continue;
 
+                // lookup cfg once -> bail if not in list
+                if (!_config.VehicleTypes.TryGetValue(typeKey, out var cfg)) continue;
                 // never decay while mounted (driver seat only)
                 if (IsVehicleMounted(ent)) continue;
-
+                // never decay while in owner's TC range
                 if (IsWithinOwnersTC(ent, ent.OwnerID)) continue;
 
-                var minutes = _config.VehicleTypes.TryGetValue(typeKey, out var cfg) ? cfg.OwnershipDecayMinutes : 15;
+                var minutes = cfg.OwnershipDecayMinutes;
                 var limitSec = Math.Max(60, minutes * 60);
                 var last = vs.LastDismounted > 0 ? vs.LastDismounted : now; // if never recorded, treat as just mounted
 
@@ -754,8 +756,13 @@ namespace Oxide.Plugins
                     RemoveFromData(vs.NetId);
 
                     var owner = BasePlayer.FindByID(prevOwnerId);
+
                     if (owner != null && owner.IsConnected)
-                        owner.ChatMessage(Lang("DecayedOwnership", owner, _config.VehicleTypes[typeKey].DisplayName));
+                        owner.ChatMessage(Lang("DecayedOwnership", owner, cfg.DisplayName));
+
+                    // notify Discord
+                    var message = $":timer: {GetDiscordTimestamp()} `{cfg.DisplayName}` ownership of `{OwnerName(prevOwnerId)}` decayed";
+                    SendDiscordMessage(_config.DiscordWebhook, message);
                 }
             }
 
