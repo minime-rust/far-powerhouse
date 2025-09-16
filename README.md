@@ -33,7 +33,7 @@ We encourage you to explore the individual plugin folders for more information:
 
 ## ⚙️ Installation & Usage
 
-For detailed installation and usage instructions, please refer to the `README.md` file within each individual plugin's folder. Generally, our plugins are designed for easy integration with your Oxide/uMod Rust server setup.
+For detailed installation and usage instructions, please refer to the `README.md` file within each individual plugin's folder. Generally, our plugins are designed for easy integration with your Oxide/uMod or Carbon Rust server setup.
 
 ## 🤝 Contribution & Support
 
