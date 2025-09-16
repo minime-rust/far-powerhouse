@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
 using Rust;
 using UnityEngine;
 
-// using Oxide.Core.Plugins;
-// using Rust;
-
 namespace Oxide.Plugins
 {
-    [Info("FAR: Vehicle Locks", "miniMe", "1.0.4")]
+    [Info("FAR: Vehicle Locks", "miniMe", "1.0.5")]
     [Description("OwnerID-driven vehicle access control, decay, and hints without physical locks.")]
     public class FARVehicleLocks : RustPlugin
     {
@@ -86,6 +84,7 @@ namespace Oxide.Plugins
                 }
             };
 
+            [JsonProperty("Discord webhook to send vehicle lock, unlock and destructions")] public string DiscordWebhook = string.Empty;
             [JsonProperty("Check interval in seconds for ownership decay")] public int DecayCheckIntervalSeconds = 30;
             [JsonProperty("Make the horse rear on unauthorized access attempt")] public bool RearHorseOnDenied = true;
             [JsonProperty("Warn seconds before vehicle ownership decays")] public int WarnWindowSec = 180;
@@ -337,7 +336,7 @@ namespace Oxide.Plugins
 
             // Simulate double-tap crouch to trigger rear animation
             horse.duckDoubleTapped = true;
-            horse.lastDuckTapTime = Time.time;
+            horse.lastDuckTapTime = UnityEngine.Time.time;
             horse.MovementsUpdate();
         }
 
@@ -414,6 +413,41 @@ namespace Oxide.Plugins
             player.ChatMessage(Lang("DecayWarning", player, remainingMinutes, _config.VehicleTypes[typeKey].DisplayName));
         }
 
+        private string GetDiscordTimestamp()
+        {
+            DateTime utcNow = DateTime.UtcNow;
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            TimeSpan timeSpan = utcNow - epoch;
+            long unixTimeSeconds = (long)timeSpan.TotalSeconds;
+            return $"<t:{unixTimeSeconds}:t>";
+        }
+
+        private void SendDiscordMessage(string webhookUrl, string message)
+        {
+            if (string.IsNullOrWhiteSpace(webhookUrl) || string.IsNullOrWhiteSpace(message))
+                return; // nothing to send
+
+            // Discord has a strict 2000-character limit
+            const int maxLen = 2000;
+            if (message.Length > maxLen)
+                message = message.Substring(0, maxLen - 3) + "...";
+
+            // Escape safely by letting JSON serializer handle quotes, slashes, etc.
+            var payload = JsonConvert.SerializeObject(new { content = message });
+
+            webrequest.Enqueue(
+                webhookUrl,
+                payload,
+                (code, response) =>
+                {
+                    if (code != 200 && code != 204)
+                        PrintWarning($"[Discord] Failed ({code}): {response}");
+                },
+                this,
+                RequestMethod.POST,
+                new Dictionary<string, string> { ["Content-Type"] = "application/json" }
+            );
+        }
 
         private string Lang(string key, BasePlayer player = null, params object[] args)
         {
@@ -661,10 +695,21 @@ namespace Oxide.Plugins
 
         private void OnEntityKill(BaseNetworkable entity)
         {
-            if (entity is BaseEntity be && be.net?.ID != null)
+            var be = entity as BaseEntity;
+            if (be == null || be.net?.ID == null) return;
+
+            var netId = be.net.ID.Value;
+            if (_data.Vehicles.TryGetValue(netId, out var vs))
             {
-                var netId = be.net.ID.Value;
-                RemoveFromData(netId); // cleanup
+                var typeKey = vs.TypeKey ?? ResolveTypeKey(be);
+                if (!string.IsNullOrEmpty(typeKey) && _config.VehicleTypes.TryGetValue(typeKey, out var cfg))
+                {
+                    var msg = $":boom: {GetDiscordTimestamp()} `{cfg.DisplayName}` owned by `{vs.OwnerName}` was destroyed.";
+                    SendDiscordMessage(_config.DiscordWebhook, msg);
+                }
+
+                // Always remove entry at the end
+                RemoveFromData(netId);
             }
         }
 
@@ -777,8 +822,11 @@ namespace Oxide.Plugins
             vs.LastRiderName = player.displayName;
 
             SaveVehicleState(vs);
-
             player.ChatMessage(Lang("LockedNowOwnerAssigned", player, cfg.DisplayName));
+
+            // notify Discord
+            var message = $":carousel_horse: {GetDiscordTimestamp()} `{cfg.DisplayName}` was locked by `{player.displayName}`";
+            SendDiscordMessage(_config.DiscordWebhook, message);
         }
 
         private void CmdUnlock(BasePlayer player)
@@ -792,9 +840,9 @@ namespace Oxide.Plugins
             if (string.IsNullOrEmpty(typeKey))
             { player.ChatMessage(Lang("NotMountedDriver", player)); return; }
 
+            var cfg = _config.VehicleTypes[typeKey];
             if (vehicle.OwnerID != player.userID)
             {
-                var cfg = _config.VehicleTypes[typeKey];
                 var ownerName = vehicle.OwnerID == 0 ? lang.GetMessage("nobody", this, player.UserIDString) : OwnerName(vehicle.OwnerID);
                 player.ChatMessage(Lang("DeniedDriverSeat", player, cfg.DisplayName, ownerName));
                 return;
@@ -806,7 +854,11 @@ namespace Oxide.Plugins
             RemoveFromData(vehicle.net.ID.Value);
             _lastHintAt.Remove(player.userID);
 
-            player.ChatMessage(Lang("UnlockedNow", player, _config.VehicleTypes[typeKey].DisplayName));
+            player.ChatMessage(Lang("UnlockedNow", player, cfg.DisplayName));
+
+            // notify Discord
+            var message = $":carousel_horse: {GetDiscordTimestamp()} `{cfg.DisplayName}` was unlocked by `{player.displayName}`";
+            SendDiscordMessage(_config.DiscordWebhook, message);
         }
 
         private void CmdList(BasePlayer player)

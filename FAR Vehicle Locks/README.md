@@ -5,6 +5,11 @@ The **FAR Vehicle Locks** plugin offers a robust, configurable, and significantl
 
 **This plugin was entirely re-written from scratch due to the unspecified and non-permissive licensing of its conceptual inspiration, the "Horse Lock" plugin on CodeFling.com. While acknowledging the original idea, FAR Vehicle Locks expands far beyond the original implementation, offering a much broader, more flexible, and user-centric approach to vehicle security.**
 
+## Changelog
+
+### 1.0.5 - 2025-09-16
+*   **Added Discord Notifications:** Added notifications to a Discord webhook in case of locking or unlocking and death (destruction) of a vehicle
+
 ## Why FAR Vehicle Locks? (Addressing Flaws & Expanding Control)
 The original "Horse Lock" plugin, while a good concept, had significant limitations. Its primary flaw was the automatic claiming of *every* horse a player mounted, which often led to unintended ownership of vehicles a player merely wanted to inspect or briefly use. And, well, it was limited to horses while there are other vehicles to worry about. This created unnecessary restrictions and frustration.
 
