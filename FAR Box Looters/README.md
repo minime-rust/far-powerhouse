@@ -87,7 +87,7 @@ All chat commands require players to have **auth level 1 (moderator) or 2 (owner
 For automated administration and server health monitoring, the following commands can be executed via RCON:
 *   `box clear` (clears database without warning - if you don't wait for wipe)
 *   `box diag`  (prints queued items waiting to go to SQLite)
-*   `box track` (prints list of excluded entity types to console)
+*   `box track` (prints list of tracked entity types to console)
 
 ## Current Development & Unique Strengths
 
