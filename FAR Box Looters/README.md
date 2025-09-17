@@ -24,6 +24,9 @@ The original "Box Looters" plugin, while a valuable concept, presented several c
 
 ## Changelog
 
+### 1.2.2 - 2025-09-17
+*   **Improved Exclusions:** Made sure you can exclude e.g. "BaseVehicle" and ensure attached storage (which is "StorageContainer") really is ignored.
+
 ### 1.2.1 - 2025-09-16
 *   **Sanitized Configuration:** Reverted `DbFileName` to be non-configurable. Making that configurable was stupid.
 *   **Added wipe detection:** Borrowed code from "Box Looters" by `k1lly0u` to detect wipes and remove / recreate the database.
@@ -82,9 +85,9 @@ All chat commands require players to have **auth level 1 (moderator) or 2 (owner
 ## RCON Commands
 
 For automated administration and server health monitoring, the following commands can be executed via RCON:
-*   `box clear`
-*   `box diag`
-*   `box track` (Also outputs to server console on plugin load for easy reference.)
+*   `box clear` (clears database without warning - if you don't wait for wipe)
+*   `box diag`  (prints queued items waiting to go to SQLite)
+*   `box track` (prints list of excluded entity types to console)
 
 ## Current Development & Unique Strengths
 
@@ -100,6 +103,7 @@ The plugin provides several configuration options to tailor its behavior to your
 {
   "ChatLineLimit": 15,      // maximum number of lines for the chat
   "ExcludeEntities": [      // list of entity types or subtypes to exclude
+    "BaseVehicle",          // you likely don't want to track vehicle mounted storage
     "LootContainer"         // always (!) EXCLUDE roadside loot, barrels, crates, etc.
   ],
   "FlushInterval": 60.0,    // interval in seconds for saving to SQLite database

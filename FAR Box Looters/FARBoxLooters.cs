@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Box Looters", "miniMe", "1.2.1")]
+    [Info("FAR: Box Looters", "miniMe", "1.2.2")]
     [Description("Logs container accesses and item changes into SQLite. Minimal, self-contained, Oxide/Carbon neutral.")]
     public class FARBoxLooters : RustPlugin
     {
@@ -68,6 +68,8 @@ namespace Oxide.Plugins
         #region Config
         private PluginConfig _config;
         private HashSet<Type> _trackedEntityTypes;
+        private HashSet<Type> _excludedEntityTypes;
+
         private class PluginConfig
         {
             public int ChatLineLimit { get; set; } = 15;    // limit lines to output to chat
@@ -1132,7 +1134,8 @@ namespace Oxide.Plugins
             var includeNames = new HashSet<string>(_config.IncludeEntities, StringComparer.OrdinalIgnoreCase);
             var excludeNames = new HashSet<string>(_config.ExcludeEntities, StringComparer.OrdinalIgnoreCase);
 
-            var resolved = new HashSet<Type>();
+            var resolvedTracked = new HashSet<Type>();
+            var resolvedExcluded = new HashSet<Type>();
 
             foreach (var t in typeof(BaseEntity).Assembly.GetTypes())
             {
@@ -1140,30 +1143,50 @@ namespace Oxide.Plugins
 
                 var name = t.Name;
 
-                // Exclusion always wins
-                if (excludeNames.Contains(name)) continue;
+                // collect exclusions
+                if (excludeNames.Contains(name)) { resolvedExcluded.Add(t); continue; } // skip further processing
 
-                // Include if explicitly listed OR if base class is listed
-                if (includeNames.Contains(name) ||
-                    includeNames.Contains(t.BaseType?.Name ?? string.Empty))
-                { resolved.Add(t); }
+                // collect inclusions
+                if (includeNames.Contains(name) || includeNames.Contains(t.BaseType?.Name ?? string.Empty))
+                    resolvedTracked.Add(t);
             }
 
-            _trackedEntityTypes = resolved;
+            _trackedEntityTypes = resolvedTracked;
+            _excludedEntityTypes = resolvedExcluded;
 
-            // Build a string of names manually
-            var namesList = new List<string>();
-            foreach (var type in _trackedEntityTypes)
-            { namesList.Add(type.Name); }
-
-            Puts($"Tracking {_trackedEntityTypes.Count} entity types: {string.Join(", ", namesList)}");
+            Puts($"Tracking {_trackedEntityTypes.Count} entity types, excluding {_excludedEntityTypes.Count} types");
         }
 
         // --- helper: include or exclude entity fast in hot path ---
         private bool ShouldTrackEntity(BaseEntity ent)
         {
             if (ent == null) return false;
-            return _trackedEntityTypes.Contains(ent.GetType());
+
+            var type = ent.GetType();
+
+            if (_trackedEntityTypes == null || !_trackedEntityTypes.Contains(type))
+                return false;
+
+            // Walk parent chain
+            var t = ent.transform.parent;
+            while (t != null)
+            {
+                var parentEnt = t.GetComponent<BaseEntity>();
+                if (parentEnt != null)
+                {
+                    var parentType = parentEnt.GetType();
+
+                    // direct exclusion
+                    if (_excludedEntityTypes.Contains(parentType)) return false;
+
+                    // inheritance exclusion (e.g., exclude BaseVehicle → catches ModularCar, Minicopter, etc.)
+                    foreach (var exclType in _excludedEntityTypes)
+                        if (exclType.IsAssignableFrom(parentType)) return false;
+                }
+                t = t.parent;
+            }
+
+            return true;
         }
 
         // --- helper: safe numeric conversion from DB row values ---
