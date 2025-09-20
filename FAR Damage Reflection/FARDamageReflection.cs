@@ -15,7 +15,7 @@ using UnityEngine;                      // BasePlayer, GameObject, etc.
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Damage Reflection", "miniMe", "1.1.3")]
+    [Info("FAR: Damage Reflection", "miniMe", "1.1.4")]
     [Description("Based on Chernarust's 'ReflectDamage' plugin. Reflects configurable portions of damage back to players, amplifies headshot damage, and optionally applies a bleeding effect to the attacker. Improves basic TC security. Requires specific permission for bypass.")]
 
     public class FARDamageReflection : RustPlugin
@@ -715,6 +715,10 @@ namespace Oxide.Plugins
                 }
             }
 
+            // we need to capture monument zones before applying a punishment
+            var attackerInMonumentZone = IsPlayerInMonumentZone(attacker);
+            var victimInMonumentZone = IsPlayerInMonumentZone(victim);
+
             // Does a PVE implementation limit damage reflection?
             // We can still hurt or kill the attacker!
             if (damageToReflect > 0f)
@@ -738,7 +742,7 @@ namespace Oxide.Plugins
             // Auto-Kick is configured
             if (enableAutoKick && (strikeLimitReached || killPlayer))
             {
-                if (IsPlayerInMonumentZone(attacker) && IsPlayerInMonumentZone(victim) && IsSameTeam(attacker, victim))
+                if (attackerInMonumentZone && victimInMonumentZone && IsSameTeam(attacker, victim))
                 {
                     if (debug)
                         Puts($"[DEBUG] Not kicking {attackerName} because it is team friendly fire inside monument bounds");
@@ -750,7 +754,7 @@ namespace Oxide.Plugins
                     else
                     {
                         attacker.Kick(Lang("pvpAutoKick", null, victimName));
-                        Puts($"Attacker in monument: {IsPlayerInMonumentZone(attacker)} | Victim in monument: {IsPlayerInMonumentZone(victim)} | Both in same team: {IsSameTeam(attacker, victim)}");
+                        Puts($"Attacker in monument: {attackerInMonumentZone} | Victim in monument: {victimInMonumentZone} | Both in same team: {IsSameTeam(attacker, victim)}");
 
                         // Notify Discord
                         webhook = _config?.Discord?.pvpAutoKickWebhook ?? string.Empty;

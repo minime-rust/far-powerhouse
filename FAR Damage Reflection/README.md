@@ -27,6 +27,11 @@ FAR Damage Reflection is built upon the brilliant foundational work of "ReflectD
 
 This is our most complex and ambitious plugin to date, representing a significant achievement in automated server management.
 
+## Changelog
+
+### 1.1.4 - 2025-09-19
+*   **Improved Auto-Kick:** Adjusted monument detection to avoid unwanted kicks on friendly fire between team members inside monument boundaries.
+
 ## Key Features
 
 **Core Damage Handling:**
