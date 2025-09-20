@@ -59,48 +59,22 @@ The plugin offers extensive configuration options to fine-tune every aspect of l
     "PluginMonitorStartupIgnoreSeconds": 120, // Number of seconds to ignore plugin load/unload/reload events at startup to avoid spam.
     "Use24HourTime": true // Use 24-hour format for time displays.
   },
-  "Webhooks": {
-    "AirdropWebhook": "", // Discord webhook URL for Airdrop looting notifications.
-    "WipeWebhook": "", // Discord webhook URL for server wipe notifications.
-    "TrapperWebhook": "", // Discord webhook URL for FARTrapper notifications (obsolete, will be removed).
-    "NoPvPWebhook": "", // Discord webhook URL for FARNoPvP notifications (obsolete, will be removed).
-    "BasesWebhook": "", // Discord webhook URL for Raidable/Abandoned Bases notifications.
-    "VendorWebhook": "", // Discord webhook URL for Travelling Vendor notifications.
-    "PluginsWebhook": "", // Discord webhook URL for plugin load/unload/reload notifications.
-    "UsersCfgWebhook": "", // Discord webhook URL for users.cfg change notifications.
-    "GuessNumberWebhook": "", // Discord webhook URL for Guess the Number events.
-    "DoorKnockersWebhook": "" // Discord webhook URL for failed player connection attempts.
-  },
-  "Discord": {
-    "EscapeMarkdown": false, // Escape markdown characters in Discord messages.
-    "BreakMentions": false, // Break Discord mentions (e.g., @everyone) to prevent pings.
-    "SuppressPings": true, // Suppress all pings (@everyone, @here, roles) in messages.
-    "TruncateToLimit": true, // Truncate messages if they exceed Discord's content limit.
-    "ContentLimit": 2000, // Discord's content limit for messages.
-    "TruncationSuffix": "…", // Suffix to add when a message is truncated.
-    "Username": "", // Custom username for Discord webhook messages.
-    "AvatarUrl": "", // Custom avatar URL for Discord webhook messages.
-    "TimeoutSeconds": 10, // Timeout for Discord webhook requests.
-    "LogFailures": true // Log any failures when sending Discord messages.
-  },
   "Airdrop": {
     "Enabled": true, // Enable/disable Airdrop monitoring.
     "ChatNotify": true, // Enable/disable global chat notifications for Airdrop looting.
     "DiscordNotify": true // Enable/disable Discord notifications for Airdrop looting.
   },
-  "ServerWipes": {
-    "Enabled": true, // Enable/disable server wipe monitoring.
-    "DiscordNotify": true, // Enable/disable Discord notifications for server wipes.
-    "RustMapsApiKey": "" // rustmaps.com API Key to automate map generation requests.
-  },
   "Bases": {
     "Enabled": true, // Enable/disable Raidable/Abandoned Bases monitoring.
     "DiscordNotify": true // Enable/disable Discord notifications for Bases events.
   },
-  "TravellingVendor": {
-    "Enabled": true, // Enable/disable Travelling Vendor monitoring.
-    "DiscordNotify": true, // Enable/disable Discord notifications for Travelling Vendor.
-    "NotifyDespawn": true // Enable/disable notification when the Travelling Vendor despawns.
+  "DoorKnockers": {
+    "Enabled": true, // Enable/disable failed connection monitoring.
+    "DiscordNotify": true // Enable/disable Discord notifications for failed connections.
+  },
+  "GuessTheNumber": {
+    "Enabled": true, // Enable/disable Guess the Number monitoring.
+    "DiscordNotify": true // Enable/disable Discord notifications for Guess the Number events.
   },
   "PluginMonitor": {
     "Enabled": true, // Enable/disable plugin load/unload/reload monitoring.
@@ -110,6 +84,11 @@ The plugin offers extensive configuration options to fine-tune every aspect of l
     "Enabled": true, // Enable/disable scheduled command execution.
     "TimeUtc": "00:45", // UTC time (HH:MM) when the scheduled command should run daily.
     "Command": "restart 900 \"nightly restart\"" // The console command to execute.
+  },
+  "ServerWipes": {
+    "Enabled": true, // Enable/disable server wipe monitoring.
+    "DiscordNotify": true, // Enable/disable Discord notifications for server wipes.
+    "RustMapsApiKey": "" // rustmaps.com API Key to automate map generation requests.
   },
   "StartupCommands": {
     "Enable": true, // Enable/disable startup command execution.
@@ -121,17 +100,26 @@ The plugin offers extensive configuration options to fine-tune every aspect of l
       "del cargoship"
     ]
   },
+  "TravellingVendor": {
+    "Enabled": true, // Enable/disable Travelling Vendor monitoring.
+    "DiscordNotify": true, // Enable/disable Discord notifications for Travelling Vendor.
+    "NotifyDespawn": true // Enable/disable notification when the Travelling Vendor despawns.
+  },
   "UsersCfg": {
     "Enabled": true, // Enable/disable users.cfg integrity monitoring.
     "DiscordNotify": true // Enable/disable Discord notifications for users.cfg changes.
   },
-  "GuessTheNumber": {
-    "Enabled": true, // Enable/disable Guess the Number monitoring.
-    "DiscordNotify": true // Enable/disable Discord notifications for Guess the Number events.
-  },
-  "DoorKnockers": {
-    "Enabled": true, // Enable/disable failed connection monitoring.
-    "DiscordNotify": true // Enable/disable Discord notifications for failed connections.
+  "Webhooks": {
+    "AirdropWebhook": "", // Discord webhook URL for Airdrop looting notifications.
+    "WipeWebhook": "", // Discord webhook URL for server wipe notifications.
+    "TrapperWebhook": "", // Discord webhook URL for FARTrapper notifications (obsolete, will be removed).
+    "NoPvPWebhook": "", // Discord webhook URL for FARNoPvP notifications (obsolete, will be removed).
+    "BasesWebhook": "", // Discord webhook URL for Raidable/Abandoned Bases notifications.
+    "VendorWebhook": "", // Discord webhook URL for Travelling Vendor notifications.
+    "PluginsWebhook": "", // Discord webhook URL for plugin load/unload/reload notifications.
+    "UsersCfgWebhook": "", // Discord webhook URL for users.cfg change notifications.
+    "GuessNumberWebhook": "", // Discord webhook URL for Guess the Number events.
+    "DoorKnockersWebhook": "" // Discord webhook URL for failed player connection attempts.
   }
 }
 ```
