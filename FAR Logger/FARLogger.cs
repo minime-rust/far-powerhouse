@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Logger", "miniMe", "1.2.4")]
+    [Info("FAR: Logger", "miniMe", "1.2.5")]
     [Description("A flexible, Discord-integrated event logger for admins")]
 
     public class FARLogger : CovalencePlugin
@@ -37,71 +37,23 @@ namespace Oxide.Plugins
         private class ConfigData
         {
             public GeneralConfig General { get; set; } = new GeneralConfig(); // Initialized here
-            public WebhooksConfig Webhooks { get; set; } = new WebhooksConfig();
-            public DiscordConfig Discord { get; set; } = new DiscordConfig();
             public AirdropConfig Airdrop { get; set; } = new AirdropConfig();
-            public ServerWipesConfig ServerWipes { get; set; } = new ServerWipesConfig();
-            public FARTrapperConfig FARTrapper { get; set; } = new FARTrapperConfig();
-            public FARNoPvPConfig FARNoPvP { get; set; } = new FARNoPvPConfig();
             public BasesConfig Bases { get; set; } = new BasesConfig(); // This handles Abandoned and Raidable Bases
-            public TravellingVendorConfig TravellingVendor { get; set; } = new TravellingVendorConfig();
+            public DoorKnockersConfig DoorKnockers { get; set; } = new DoorKnockersConfig();
+            public GTNConfig GuessTheNumber { get; set; } = new GTNConfig();
             public PluginMonitorConfig PluginMonitor { get; set; } = new PluginMonitorConfig();
             public ScheduledCommandConfig ScheduledCommand { get; set; } = new ScheduledCommandConfig();
+            public ServerWipesConfig ServerWipes { get; set; } = new ServerWipesConfig();
             public StartupCommandsConfig StartupCommands { get; set; } = new StartupCommandsConfig();
+            public TravellingVendorConfig TravellingVendor { get; set; } = new TravellingVendorConfig();
             public UsersCfgConfig UsersCfg { get; set; } = new UsersCfgConfig();
-            public GTNConfig GuessTheNumber { get; set; } = new GTNConfig();
-            public DoorKnockersConfig DoorKnockers { get; set; } = new DoorKnockersConfig();
+            public WebhooksConfig Webhooks { get; set; } = new WebhooksConfig();
         }
 
         private class GeneralConfig
         {
             public int PluginMonitorStartupIgnoreSeconds { get; set; } = 120; // seconds to ignore plugin load events after server start
-            public string DefaultLanguage { get; set; } = "en";
             public bool Use24HourTime { get; set; } = true; // Player's culture used for date/time format when possible
-        }
-
-        private class ScheduledCommandConfig
-        {
-            public bool Enabled { get; set; } = false;                      // enable (true) or disable the scheduler
-            public string TimeUtc { get; set; } = "00:45";                  // scheduled time on real-time clock
-            public string Command { get; set; } = "restart 900 \"nightly restart\""; // the to-be-executed command
-        }
-
-        private class StartupCommandsConfig
-        {
-            public bool Enable { get; set; } = false;
-            public int DelaySeconds { get; set; } = 60;
-            public List<string> Commands { get; set; } = new List<string>();
-        }
-
-        private class WebhooksConfig
-        {
-            public string AirdropWebhook { get; set; } = "";
-            public string WipeWebhook { get; set; } = "";
-            public string TrapperWebhook { get; set; } = "";
-            public string NoPvPWebhook { get; set; } = "";
-            public string BasesWebhook { get; set; } = "";
-            public string VendorWebhook { get; set; } = "";
-            public string PluginsWebhook { get; set; } = "";
-            public string UsersCfgWebhook { get; set; } = "";
-            public string GuessNumberWebhook { get; set; } = "";
-            public string DoorKnockersWebhook { get; set; } = "";
-        }
-
-        private class DiscordConfig
-        {
-            public bool EscapeMarkdown { get; set; } = true;          // Formatting
-            public bool BreakMentions { get; set; } = false;          // "@everyone" -> "@ ​everyone"
-            public bool SuppressPings { get; set; } = true;           // use allowed_mentions: []
-            public bool TruncateToLimit { get; set; } = true;
-            public int ContentLimit { get; set; } = 2000;
-            public string TruncationSuffix { get; set; } = "…";
-
-            public string Username { get; set; } = "";                // default webhook username if set
-            public string AvatarUrl { get; set; } = "";               // default webhook avatar if set
-
-            public int TimeoutSeconds { get; set; } = 10;             // webrequest timeout
-            public bool LogFailures { get; set; } = true;             // warn on non-2xx
         }
 
         private class AirdropConfig
@@ -111,50 +63,7 @@ namespace Oxide.Plugins
             public bool DiscordNotify { get; set; } = false;
         }
 
-        private class ServerWipesConfig
-        {
-            public bool Enabled { get; set; } = false;
-            public bool DiscordNotify { get; set; } = false;
-        }
-
-        private class FARTrapperConfig
-        {
-            public bool Enabled { get; set; } = false;
-            public bool DiscordNotify { get; set; } = false;
-        }
-
-        private class FARNoPvPConfig
-        {
-            public bool Enabled { get; set; } = false;
-            public bool DiscordNotify { get; set; } = false;
-        }
-
         private class BasesConfig
-        {
-            public bool Enabled { get; set; } = false;
-            public bool DiscordNotify { get; set; } = false;
-        }
-
-        private class TravellingVendorConfig
-        {
-            public bool Enabled { get; set; } = false;
-            public bool DiscordNotify { get; set; } = false;
-            public bool NotifyDespawn { get; set; } = false;
-        }
-
-        private class PluginMonitorConfig
-        {
-            public bool Enabled { get; set; } = false;
-            public bool DiscordNotify { get; set; } = false;
-        }
-
-        private class UsersCfgConfig
-        {
-            public bool Enabled { get; set; } = false;
-            public bool DiscordNotify { get; set; } = false;
-        }
-
-        private class GTNConfig
         {
             public bool Enabled { get; set; } = false;
             public bool DiscordNotify { get; set; } = false;
@@ -166,32 +75,80 @@ namespace Oxide.Plugins
             public bool DiscordNotify { get; set; } = false;
         }
 
-        // IMPORTANT: This method is called automatically by the Oxide/Carbon framework
-        // if your plugin's config file doesn't exist or is invalid.
-        // You generally DO NOT call this directly yourself.
-        protected override void LoadDefaultConfig()
+        private class GTNConfig
         {
-            config = new ConfigData(); // This initializes the top-level config object
-            SaveConfig(); // This saves it, but doesn't set defaults for nested objects
+            public bool Enabled { get; set; } = false;
+            public bool DiscordNotify { get; set; } = false;
         }
 
-        // IMPORTANT: This method is called automatically by the Oxide/Carbon framework
-        // when your plugin loads. You generally DO NOT call this directly yourself.
+        private class PluginMonitorConfig
+        {
+            public bool Enabled { get; set; } = false;
+            public bool DiscordNotify { get; set; } = false;
+        }
+
+        private class ScheduledCommandConfig
+        {
+            public bool Enabled { get; set; } = false;                      // enable (true) or disable the scheduler
+            public string TimeUtc { get; set; } = "00:45";                  // scheduled time on real-time clock
+            public string Command { get; set; } = "restart 900 \"nightly restart\""; // the to-be-executed command
+        }
+
+        private class ServerWipesConfig
+        {
+            public bool Enabled { get; set; } = false;
+            public bool DiscordNotify { get; set; } = false;
+            public string RustMapsApiKey { get; set; } = "";
+        }
+
+        private class StartupCommandsConfig
+        {
+            public bool Enable { get; set; } = false;
+            public int DelaySeconds { get; set; } = 60;
+            public List<string> Commands { get; set; } = new List<string>();
+        }
+
+        private class TravellingVendorConfig
+        {
+            public bool Enabled { get; set; } = false;
+            public bool DiscordNotify { get; set; } = false;
+            public bool NotifyDespawn { get; set; } = false;
+        }
+
+        private class UsersCfgConfig
+        {
+            public bool Enabled { get; set; } = false;
+            public bool DiscordNotify { get; set; } = false;
+        }
+
+        private class WebhooksConfig
+        {
+            public string AirdropWebhook { get; set; } = "";
+            public string BasesWebhook { get; set; } = "";
+            public string DoorKnockersWebhook { get; set; } = "";
+            public string GuessNumberWebhook { get; set; } = "";
+            public string PluginsWebhook { get; set; } = "";
+            public string UsersCfgWebhook { get; set; } = "";
+            public string VendorWebhook { get; set; } = "";
+            public string WipeWebhook { get; set; } = "";
+        }
+
+        protected override void LoadDefaultConfig()
+        {
+            config = new ConfigData();
+            SaveConfig();
+        }
+
         protected override void LoadConfig()
         {
-            base.LoadConfig(); // This MUST be the first line. It loads the file into 'Config' and calls LoadDefaultConfig if needed.
+            base.LoadConfig();
             try
             {
                 config = Config.ReadObject<ConfigData>();
-                // After reading, ensure all nested objects are initialized if they somehow weren't (e.g., from old config file)
-                // This 'fixes' older configs that might be missing sections.
+                config.General ??= new GeneralConfig();
                 config.Airdrop ??= new AirdropConfig();
                 config.Bases ??= new BasesConfig();
-                config.Discord ??= new DiscordConfig();
                 config.DoorKnockers ??= new DoorKnockersConfig();
-                config.FARNoPvP ??= new FARNoPvPConfig();
-                config.FARTrapper ??= new FARTrapperConfig();
-                config.General ??= new GeneralConfig();
                 config.GuessTheNumber ??= new GTNConfig();
                 config.PluginMonitor ??= new PluginMonitorConfig();
                 config.ScheduledCommand ??= new ScheduledCommandConfig();
@@ -200,13 +157,12 @@ namespace Oxide.Plugins
                 config.UsersCfg ??= new UsersCfgConfig();
                 config.Webhooks ??= new WebhooksConfig();
             }
+            // Fallback to default config if deserialization fails
             catch (Exception ex)
             {
-                LoadDefaultConfig(); // Fallback to default config if deserialization fails
+                PrintWarning($"LoadConfig failed, falling back to defaults: {ex.Message}");
+                LoadDefaultConfig();
             }
-
-            // After loading (or defaulting), always save the config to ensure it's up-to-date
-            // and correctly formatted on disk, especially if default values were just created or updated.
             SaveConfig();
         }
 
@@ -237,7 +193,6 @@ namespace Oxide.Plugins
         [Serializable]
         private class StoredData
         {
-            public int Schema = 1;
             public WipeData Wipe = new WipeData();
             public UsersCfgData UsersCfg = new UsersCfgData();
         }
@@ -264,6 +219,17 @@ namespace Oxide.Plugins
 
         // Airdrop tracking: in-memory to avoid double notification per crate
         private readonly HashSet<ulong> lootedSupplyDrops = new HashSet<ulong>();
+
+        // Discord Message Queue
+        private class DiscordMessage
+        {
+            public string WebhookUrl;
+            public string Payload; // already JSON-serialized payload ({"content":"..."})
+        }
+        private readonly Queue<DiscordMessage> _discordQueue = new Queue<DiscordMessage>();
+        private Timer _discordQueueTimer;
+        private const float DiscordIntervalSeconds = 1.0f; // 1 message per second default (tuneable)
+        private readonly object _discordQueueLock = new object();
 
         // Plugin load time
         private DateTime pluginStartTime = DateTime.UtcNow;
@@ -332,13 +298,6 @@ namespace Oxide.Plugins
         private const string Lang_SupplyDropLooted = "SupplyDropLooted";
         private const string Lang_SupplyDropLootedDiscord = "SupplyDropLootedDiscord";
         private const string Lang_ServerWipeDetectedDiscord = "ServerWipeDetectedDiscord";
-        private const string Lang_TrapPlacedDiscord = "TrapPlacedDiscord";
-        private const string Lang_NoPvPDeathKickDiscord = "NoPvPDeathKickDiscord";
-        private const string Lang_NoPvPDeathWarnDiscord = "NoPvPDeathWarnDiscord";
-        private const string Lang_AbandonedBaseFoundDiscord = "AbandonedBaseFoundDiscord";
-        private const string Lang_AbandonedBaseStartedDiscord = "AbandonedBaseStartedDiscord";
-        private const string Lang_AbandonedBaseCompletedDiscord = "AbandonedBaseCompletedDiscord";
-        private const string Lang_AbandonedBaseEndedDiscord = "AbandonedBaseEndedDiscord";
         private const string Lang_RaidableBasePurchasedDiscord = "RaidableBasePurchasedDiscord";
         private const string Lang_RaidableBaseStartedDiscord = "RaidableBaseStartedDiscord";
         private const string Lang_RaidableBaseCompletedDiscord = "RaidableBaseCompletedDiscord";
@@ -373,11 +332,6 @@ namespace Oxide.Plugins
                 [Lang_TimeRemaining] = "Time until wipe: {0} days {1} hours {2} minutes",
                 [Lang_ServerWipeDetectedDiscord] = "**Server wipe detected!**\nNew map: {0}",
                 [Lang_LondonTime] = "London time",
-                // Abandoned Bases
-                [Lang_AbandonedBaseFoundDiscord] = ":homes: {0} `{1}`'s base ({2}) became abandoned at `{3}`{4}",
-                [Lang_AbandonedBaseStartedDiscord] = ":homes: {0} `{1}`'s abandoned base ({2}) became raidable at `{3}`{4}",
-                [Lang_AbandonedBaseCompletedDiscord] = ":homes: {0} `{1}`'s abandoned base ({2}) completed at `{3}`{4}",
-                [Lang_AbandonedBaseEndedDiscord] = ":homes: {0} `{1}`'s abandoned base ({2}) ended at `{3}`{4}",
                 // Raidable Bases
                 [Lang_RaidableBasePurchasedDiscord] = ":homes: {0} `{1}` has paid for the {2} Raidable **{3}** Base (`{4}`) at `{5}`",
                 [Lang_RaidableBaseStartedDiscord] = ":homes: {0} {1} Raidable **{2}** Base spawned at `{3}`",
@@ -394,21 +348,18 @@ namespace Oxide.Plugins
                 // Travelling Vendor
                 [Lang_VendorSpawnedDiscord] = ":compass: {0} The `Travelling Vendor` has entered the map at `{1}`{2}",
                 [Lang_VendorDespawnedDiscord] = ":compass: {0} The `Travelling Vendor` has left the map at `{1}`{2}",
-                // Other rule enforcements and notifications
+                // Other helpers, rule enforcements and notifications
                 [Lang_MapHelperNear] = " near ",
-                [Lang_NoPvPDeathKickDiscord] = ":skull_crossbones: {0} `{1}` was kicked for PvP after attacking `{2}` at `{3}`{4}",
-                [Lang_NoPvPDeathWarnDiscord] = ":skull_crossbones: {0} Both `{1}` and `{2}` were warned for (un)friendly fire at `{3}`{4}",
                 [Lang_SupplyDropLooted] = "{0} is looting a Supply Drop at {1}{2}",
                 [Lang_SupplyDropLootedDiscord] = ":gift: {0} `{1}` looted a Supply Drop at `{2}`{3}",
                 [Lang_PluginEventDiscord] = ":pause: {0} `{1}` plugin v`{2}` by `{3}` was `{4}`",
                 [Lang_UsersCfgChangedDiscord] = ":skull_crossbones: {0} The `users.cfg` file has changed. Checksums old|new: {1}|{2}",
                 [Lang_DoorKnockersDiscord] = ":no_entry: {0} Rejected: `{1}` ({2}) for `{3}` from {4}",
-                [Lang_TrapPlacedDiscord] = ":skull_crossbones: {0} `{1}` tried to place a wild trap (`{2}`) at `{3}`{4}",
                 [Lang_GTNStartDiscord] = ":1234: {0} The `Guess the Number` event started! Number range `{1}` - `{2}`",
                 [Lang_GTNWinDiscord] = ":1234: {0} `{1}` has won the `Guess the Number` event! Winning number: `{2}`",
                 [Lang_GTNTimeoutDiscord] = ":1234: {0} The `Guess the Number` event timed out, nobody won! Winning number: `{1}`"
             }, this, "en");
-        }     // Puts($"Rejected: {name} ({sid}) - {reason} from {ip}{(port.Length > 0 ? ":" + port : "")}");
+        }
 
         private string Lang(string key, string playerId, params object[] args)
         {
@@ -438,8 +389,10 @@ namespace Oxide.Plugins
             // Clear Supply Drops on plugin unload
             lootedSupplyDrops.Clear();
             // Clear our timers
+            _discordQueueTimer?.Destroy();
             saveDebounce?.Destroy();
             _UsersCfgTimer?.Destroy();
+            _discordQueueTimer = null;
             saveDebounce = null;
             _UsersCfgTimer = null;
             // Clean up the FAR: Map Helper instance
@@ -448,25 +401,6 @@ namespace Oxide.Plugins
             Application.logMessageReceived -= OnLog;
             // Clear Task Scheduler
             StopDailyUtcCommand();
-
-            // Unsubscribe from Abandoned Bases hooks
-            Unsubscribe(nameof(OnPotentialAbandonedBaseFound));
-            Unsubscribe(nameof(OnAbandonedBaseStarted));
-            Unsubscribe(nameof(OnAbandonedBaseCompleted));
-            Unsubscribe(nameof(OnAbandonedBaseEventEnd));
-            // Unsubscribe from FAR NoPVP hooks
-            Unsubscribe(nameof(OnPvPDeath));
-            // Unsubscribe from FAR Trapper hook
-            Unsubscribe(nameof(OnWildTrapPlaced));
-            // Unsubscribe from Guess The Number hooks
-            Unsubscribe(nameof(OnGTNEventStart));
-            Unsubscribe(nameof(OnGTNTimeout));
-            Unsubscribe(nameof(OnGTNWin));
-            // Unsubscribe from Raidable Bases hooks
-            Unsubscribe(nameof(OnRaidableBasePurchased));
-            Unsubscribe(nameof(OnRaidableBaseStarted));
-            Unsubscribe(nameof(OnRaidableBaseCompleted));
-            Unsubscribe(nameof(OnRaidableBaseEnded));
         }
 
         // Called whenever server starts or dependency state changes
@@ -508,7 +442,8 @@ namespace Oxide.Plugins
             // users.cfg checksum monitoring - set timer to 300 seconds to run checksum
             if (config?.UsersCfg?.Enabled ?? false)
             {
-                timer.Every(300f, CheckUsersCfgHash);
+                _UsersCfgTimer?.Destroy();
+                _UsersCfgTimer = timer.Every(300f, CheckUsersCfgHash);
                 Puts($"UsersCfg monitor enabled. Watching this file: {_usersCfgPath}");
             }
 
@@ -516,97 +451,22 @@ namespace Oxide.Plugins
             if (config?.DoorKnockers?.Enabled ?? false)
                 Puts($"Door Knockers monitor enabled. Watching rejected user logins.");
 
-            // --- GUESS THE NUMBER HOOK SUBSCRIPTION ---
-            // Only attempt to subscribe if the feature is enabled in *this* plugin's config.
+            // --- GUESS THE NUMBER ---
             if (config?.GuessTheNumber?.Enabled ?? false)
             {
-                // IMPORTANT: Replace "GuessTheNumber" with the exact name of the plugin.
-                // This is typically the C# class name, or the file name without .cs extension.
-                var gtnPlugin = plugins?.Find("GuessTheNumber");
-
-                if (gtnPlugin != null)
-                {
+                if (plugins?.Find("GuessTheNumber") != null)
                     Puts("Guess The Number plugin found. Subscribing to its hooks.");
-                    Subscribe(nameof(OnGTNEventStart));
-                    Subscribe(nameof(OnGTNTimeout));
-                    Subscribe(nameof(OnGTNWin));
-                }
                 else
                     Puts("Guess The Number plugin not found. GTN notifications will be disabled.");
             }
 
-            // --- ABANDONED BASES HOOK SUBSCRIPTION ---
-            // Only attempt to subscribe if the feature is enabled in *this* plugin's config.
-            if (config?.Bases?.Enabled ?? false) // Assuming you have a 'Bases' section in your config
-            {
-                // IMPORTANT: Use the exact class name of the AbandonedBases plugin.
-                // If the file is AbandonedBases.cs, the plugin class name is most likely "AbandonedBases".
-                var abandonedBasesPlugin = plugins?.Find("AbandonedBases");
-
-                if (abandonedBasesPlugin != null)
-                {
-                    Puts("Abandoned Bases plugin found. Subscribing to its hooks.");
-                    Subscribe(nameof(OnPotentialAbandonedBaseFound));
-                    Subscribe(nameof(OnAbandonedBaseStarted));
-                    Subscribe(nameof(OnAbandonedBaseCompleted));
-                    Subscribe(nameof(OnAbandonedBaseEventEnd));
-                }
-                else
-                    Puts("Abandoned Bases plugin not found. Abandoned Base notifications will be disabled.");
-            }
-
-            // --- FAR NOPVP HOOK SUBSCRIPTION ---
-            // Only attempt to subscribe if the feature is enabled in *this* plugin's config.
-            if (config?.FARNoPvP?.Enabled ?? false) // Assuming you have a FARNoPvP section in your config
-            {
-                // IMPORTANT: Use the exact class name of the FARNoPVP plugin.
-                // If the file is FARNoPVP.cs, the plugin class name is most likely "FARNoPVP".
-                var farNoPvPPlugin = plugins?.Find("FARNoPVP");
-
-                if (farNoPvPPlugin != null)
-                {
-                    Puts("FAR NoPVP plugin found. Subscribing to its hooks.");
-                    Subscribe(nameof(OnPvPDeath));
-                }
-                else
-                    Puts("FAR NoPVP plugin not found. NoPVP death notifications will be disabled.");
-            }
-
-            // --- RAIDABLE BASES HOOK SUBSCRIPTION ---
-            // Assuming the 'Bases' config section also covers Raidable Bases if it's the same notification category
+            // --- RAIDABLE BASES ---
             if (config?.Bases?.Enabled ?? false)
             {
-                // IMPORTANT: Use the exact class name of the RaidableBases plugin.
-                // If the file is RaidableBases.cs, the plugin class name is most likely "RaidableBases".
-                var raidableBasesPlugin = plugins?.Find("RaidableBases");
-
-                if (raidableBasesPlugin != null)
-                {
+                if (plugins?.Find("RaidableBases") != null)
                     Puts("Raidable Bases plugin found. Subscribing to its hooks.");
-                    Subscribe(nameof(OnRaidableBasePurchased));
-                    Subscribe(nameof(OnRaidableBaseStarted));
-                    Subscribe(nameof(OnRaidableBaseCompleted));
-                    Subscribe(nameof(OnRaidableBaseEnded));
-                }
                 else
                     Puts("Raidable Bases plugin not found. Raidable Base notifications will be disabled.");
-            }
-
-            // --- FAR TRAPPER HOOK SUBSCRIPTION ---
-            // Only attempt to subscribe if the feature is enabled in *this* plugin's config.
-            if (config?.FARTrapper?.Enabled ?? false) // Assuming you have a FARTrapper section in your config
-            {
-                // IMPORTANT: Use the exact class name of the FARTrapper plugin.
-                // If the file is FARTrapper.cs, the plugin class name is most likely "FARTrapper".
-                var farTrapperPlugin = plugins?.Find("FARTrapper");
-
-                if (farTrapperPlugin != null)
-                {
-                    Puts("FAR Trapper plugin found. Subscribing to its hooks.");
-                    Subscribe(nameof(OnWildTrapPlaced));
-                }
-                else
-                    Puts("FAR Trapper plugin not found. Trapper notifications will be disabled.");
             }
         }
 
@@ -676,7 +536,7 @@ namespace Oxide.Plugins
 
             // Send Discord if configured
             var webhookURL = config?.Webhooks?.AirdropWebhook ?? string.Empty;
-            if ((config?.Airdrop?.DiscordNotify ?? false) && !string.IsNullOrWhiteSpace(webhookURL))
+            if (config?.Airdrop?.DiscordNotify ?? false)
                 SendDiscordMessage(webhookURL, dis_msg);
             return null;
         }
@@ -724,10 +584,31 @@ namespace Oxide.Plugins
             var message = Lang("ServerWipeDetectedDiscord", null, newMapUrl);
             var webhookURL = config?.Webhooks?.WipeWebhook ?? string.Empty;
 
-            if ((config?.ServerWipes?.DiscordNotify ?? false) &&
-                !string.IsNullOrWhiteSpace(webhookURL))
+            if (config?.ServerWipes?.DiscordNotify ?? false)
                 SendDiscordMessage(webhookURL, message);
 
+            var rustMapsApiKey = config?.ServerWipes?.RustMapsApiKey ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(rustMapsApiKey))
+                RequestRustMapGeneration(rustMapsApiKey, worldSize, mapSeed);
+        }
+
+        private void RequestRustMapGeneration(string apiKey, int worldSize, uint mapSeed)
+        {
+            const string url = "https://api.rustmaps.com/v4/maps";
+            var payload = $"{{\"size\":{worldSize},\"seed\":{mapSeed},\"staging\":false}}";
+
+            var headers = new Dictionary<string, string>
+            {
+                ["Content-Type"] = "application/json",
+                ["accept"] = "application/json",
+                ["X-API-Key"] = apiKey
+            };
+
+            webrequest.Enqueue(url, payload, (code, response) =>
+            {
+                if (code != 200 && code != 201)
+                    Puts($"[RustMaps] Generation request failed (code {code}): {response}");
+            }, this, Oxide.Core.Libraries.RequestMethod.POST, headers);
         }
 
         [ChatCommand("wipe")]
@@ -742,7 +623,7 @@ namespace Oxide.Plugins
             var remaining = nextWipe - nowLondon;
             if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
             // Language via Oxide Lang system; expects string ID
-            var userLang = (lang.GetLanguage(player.UserIDString) ?? config?.General?.DefaultLanguage ?? "en").ToLowerInvariant();
+            var userLang = (lang.GetLanguage(player.UserIDString) ?? "en").ToLowerInvariant();
             // ChatGPT Version
             CultureInfo culture;
             try { culture = CultureInfo.GetCultureInfo(userLang); }
@@ -788,30 +669,6 @@ namespace Oxide.Plugins
 
         #endregion
 
-        #region FAR TRAPPER
-
-        // Listens for OnWildTrapPlaced hook via plugin call
-        private object OnWildTrapPlaced(BasePlayer player, BaseEntity entity)
-        {
-            if (!(config?.FARTrapper?.Enabled ?? false) ||
-                !(config?.FARTrapper?.DiscordNotify ?? false) ||
-                player == null || entity == null)
-                return null;
-
-            var monumentPrefix = Lang("MapHelperNear", null);
-            GetMapSquareAndMonument(entity.transform.position, out var mapSquare, out var monument);
-            var monumentName = string.IsNullOrWhiteSpace(monument) ? string.Empty : $"{monumentPrefix}{monument}";
-
-            var message = Lang("TrapPlacedDiscord", null, GetDiscordTimestamp(), player.displayName, entity.ShortPrefabName, mapSquare, monumentName);
-            var webhookURL = config?.Webhooks?.TrapperWebhook ?? string.Empty;
-
-            if (!string.IsNullOrWhiteSpace(webhookURL))
-                SendDiscordMessage(webhookURL, message);
-            return null;
-        }
-
-        #endregion
-
         #region REJECTED CONNECTIONS + AB TEMP
 
         private static readonly Regex RxReject = new Regex(
@@ -828,8 +685,7 @@ namespace Oxide.Plugins
             {   // piggyback on this function for the time being <<< this is an ugly workaround!
                 var webhookURLAB = config?.Webhooks?.BasesWebhook ?? string.Empty;
                 if ((config?.Bases?.Enabled ?? false) &&
-                    (config?.Bases?.DiscordNotify ?? false) &&
-                    !string.IsNullOrWhiteSpace(webhookURLAB))
+                    (config?.Bases?.DiscordNotify ?? false))
                 {
                     var messageAB = $":homes: {GetDiscordTimestamp()} {condition}";
                     NextTick(() => SendDiscordMessage(webhookURLAB, messageAB));
@@ -866,152 +722,8 @@ namespace Oxide.Plugins
 
         #endregion
 
-        #region FAR NOPVP
+        #region RAIDABLE BASES
 
-        // Listens for OnPvPDeath hook via plugin call
-        private object OnPvPDeath(string victim, string killer, bool sameTeam, string mapSquare, string monumentName)
-        {
-            // Combined early return conditions
-            if (!(config?.FARNoPvP?.Enabled ?? false) ||
-                !(config?.FARNoPvP?.DiscordNotify ?? false))
-                return null;
-
-            var webhookURL = config?.Webhooks?.NoPvPWebhook ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(webhookURL))
-                return null;
-
-            // Ease the part with empty or populated monumentName
-            var monumentPrefix = Lang("MapHelperNear", null);
-            var monumentText = string.IsNullOrEmpty(monumentName)
-                ? string.Empty : $"{monumentPrefix}{monumentName}";
-            // 1. If teams are different (!sameTeam) -> always use Lang_NoPvPDeathKickDiscord
-            // 2. If teams are same but no monument  ->        use Lang_NoPvPDeathKickDiscord
-            // 3. If teams are same and has monument ->        use Lang_NoPvPDeathWarnDiscord
-            var message = !sameTeam || string.IsNullOrWhiteSpace(monumentName)
-                ? Lang("NoPvPDeathKickDiscord", null, GetDiscordTimestamp(), victim, killer, mapSquare, monumentText)
-                : Lang("NoPvPDeathWarnDiscord", null, GetDiscordTimestamp(), victim, killer, mapSquare, monumentText);
-
-            // Send notification to Discord
-            SendDiscordMessage(webhookURL, message);
-
-            return null;
-        }
-
-        #endregion
-
-        #region ABANDONED BASES / RAIDABLE BASES
-
-        // ################################################################
-        // Abandoned Base Events
-        // ################################################################
-        // OnPotentialAbandonedBaseFound
-        // Arguments (Vector3 position, ulong ownerId)
-        // nivex: this signature does not exist
-        // ################################################################
-        private void OnPotentialAbandonedBaseFound(Vector3 eventPos, ulong ownerId)
-        {   // check if feature enabled
-            Puts("OnPotentialAbandonedBaseFound triggered");
-            var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
-            if (!(config?.Bases?.Enabled ?? false) || string.IsNullOrWhiteSpace(webhookURL))
-                return;
-            Puts("Check config: passed");
-            // check for valid position
-            if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
-                return;
-            Puts("Check position: passed");
-            // Get event position on the map
-            var monumentPrefix = Lang("MapHelperNear", null);
-            GetMapSquareAndMonument(eventPos, out var mapSquare, out var monument);
-            var monumentName = string.IsNullOrWhiteSpace(monument) ? string.Empty : $"{monumentPrefix}{monument}";
-            Puts("Send Discord message ...");
-            // Assemble message to be sent to Discord
-            var message = Lang("AbandonedBaseFoundDiscord", null, GetDiscordTimestamp(), GetPlayerName(ownerId), mapSquare, monumentName);
-            SendBaseEventDiscord(message, webhookURL);
-        }
-        // ################################################################
-        // OnAbandonedBaseStarted
-        // Arguments (Vector3 position, ulong ownerId, bool allowPVP, List<BaseEntity> entities)
-        // nivex: OnAbandonedBaseStarted(Vector3 center, float radius, bool allowPVP, List<BasePlayer> intruders, List<ulong> intruderIds, List<BaseEntity> entities)
-        // ################################################################
-        private void OnAbandonedBaseStarted(Vector3 eventPos, ulong ownerId, bool allowPVP, List<BaseEntity> entities)
-        {   // check if feature enabled
-            Puts("OnAbandonedBaseStarted triggered");
-            var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
-            if (!(config?.Bases?.Enabled ?? false) || string.IsNullOrWhiteSpace(webhookURL))
-                return;
-            Puts("Check config: passed");
-            // check for valid position
-            if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
-                return;
-            Puts("Check position: passed");
-            // Get event position on the map
-            var monumentPrefix = Lang("MapHelperNear", null);
-            GetMapSquareAndMonument(eventPos, out var mapSquare, out var monument);
-            var monumentName = string.IsNullOrWhiteSpace(monument) ? string.Empty : $"{monumentPrefix}{monument}";
-            var PvX = allowPVP ? "PVP" : "PVE";
-            Puts("Send Discord message ...");
-            // Assemble message to be sent to Discord
-            var message = Lang("AbandonedBaseStartedDiscord", null, GetDiscordTimestamp(), GetPlayerName(ownerId), PvX, mapSquare, monumentName);
-            SendBaseEventDiscord(message, webhookURL);
-        }
-        // ################################################################
-        // OnAbandonedBaseCompleted
-        // Arguments (Vector3 position, ulong ownerId, bool allowPVP, Dictionary<ulong, BasePlayer> participants, int lootCount)
-        // nivex: this signature does not exist
-        // ################################################################
-        private void OnAbandonedBaseCompleted(Vector3 eventPos, ulong ownerId, bool allowPVP, Dictionary<ulong, BasePlayer> participants, int lootCount)
-        {   // check if feature enabled
-            Puts("OnAbandonedBaseCompleted triggered");
-            var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
-            if (!(config?.Bases?.Enabled ?? false) || string.IsNullOrWhiteSpace(webhookURL))
-                return;
-            Puts("Check config: passed");
-            // check for valid position
-            if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
-                return;
-            Puts("Check position: passed");
-            // Get event position on the map
-            var monumentPrefix = Lang("MapHelperNear", null);
-            GetMapSquareAndMonument(eventPos, out var mapSquare, out var monument);
-            var monumentName = string.IsNullOrWhiteSpace(monument) ? string.Empty : $"{monumentPrefix}{monument}";
-            var PvX = allowPVP ? "PVP" : "PVE";
-            // Build participants list (excluding ownerId)
-            var listRaiders = string.Join(", ",
-                (participants?.Keys ?? Enumerable.Empty<ulong>())
-                    .Select(GetPlayerName)
-                    .Where(n => !string.IsNullOrWhiteSpace(n)));
-            Puts("Send Discord message ...");
-            // Assemble message to be sent to Discord
-            var message = Lang("AbandonedBaseCompletedDiscord", null, GetDiscordTimestamp(), GetPlayerName(ownerId), PvX, mapSquare, monumentName) +
-                          Lang("BasesRaiders", null, listRaiders);
-            SendBaseEventDiscord(message, webhookURL);
-        }
-        // ################################################################
-        // OnAbandonedBaseEventEnd
-        // Arguments (Vector3 position, ulong ownerId, bool isPVP)
-        // nivex: OnAbandonedBaseEnded(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> participants,  List<ulong> participantIds, List<BaseEntity> entities)
-        // ################################################################
-        private void OnAbandonedBaseEventEnd(Vector3 eventPos, ulong ownerId, bool allowPVP)
-        {   // check if feature enabled
-            Puts("OnAbandonedBaseEventEnd triggered");
-            var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
-            if (!(config?.Bases?.Enabled ?? false) || string.IsNullOrWhiteSpace(webhookURL))
-                return;
-            Puts("Check config: passed");
-            // check for valid position
-            if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
-                return;
-            Puts("Check position: passed");
-            // Get event position on the map
-            var monumentPrefix = Lang("MapHelperNear", null);
-            GetMapSquareAndMonument(eventPos, out var mapSquare, out var monument);
-            var monumentName = string.IsNullOrWhiteSpace(monument) ? string.Empty : $"{monumentPrefix}{monument}";
-            var PvX = allowPVP ? "PVP" : "PVE";
-            // Assemble message to be sent to Discord
-            Puts("Send Discord message ...");
-            var message = Lang("AbandonedBaseEndedDiscord", null, GetDiscordTimestamp(), GetPlayerName(ownerId), PvX, mapSquare, monumentName);
-            SendBaseEventDiscord(message, webhookURL);
-        }
         // ################################################################
         // Raidable Bases
         // ################################################################
@@ -1021,7 +733,7 @@ namespace Oxide.Plugins
         private void OnRaidableBasePurchased(string owner, Vector3 eventPos, string gridLabel, int mode, bool allowPVP, float unknownId, float loadTime, string BaseName, DateTime spawnDateTime, DateTime despawnDateTime)
         {   // check if feature enabled
             var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
-            if (!(config?.Bases?.Enabled ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+            if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
                 return;
             // check for valid position
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
@@ -1040,7 +752,7 @@ namespace Oxide.Plugins
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
             var message = Lang("RaidableBasePurchasedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, raidProfile, mapSquare);
-            SendBaseEventDiscord(message, webhookURL);
+            SendDiscordMessage(webhookURL, message);
         }
         // ################################################################
         // OnRaidableBaseStarted
@@ -1048,7 +760,7 @@ namespace Oxide.Plugins
         private void OnRaidableBaseStarted(Vector3 eventPos, int mode, bool allowPVP)
         {   // check if feature enabled
             var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
-            if (!(config?.Bases?.Enabled ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+            if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
                 return;
             // check for valid position
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
@@ -1059,7 +771,7 @@ namespace Oxide.Plugins
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // compose message, send, done
             var message = Lang("RaidableBaseStartedDiscord", null, GetDiscordTimestamp(), difficulty, PvX, mapSquare);
-            SendBaseEventDiscord(message, webhookURL);
+            SendDiscordMessage(webhookURL, message);
         }
         // ################################################################
         // OnRaidableBaseCompleted
@@ -1067,7 +779,7 @@ namespace Oxide.Plugins
         private void OnRaidableBaseCompleted(Vector3 eventPos, int mode, bool allowPVP, ulong ownerId, List<ulong> raidersList)
         {   // check if feature enabled
             var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
-            if (!(config?.Bases?.Enabled ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+            if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
                 return;
             // check for valid position
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
@@ -1085,7 +797,7 @@ namespace Oxide.Plugins
             // Assemble message to be sent to Discord
             var message = Lang("RaidableBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, mapSquare) +
                           Lang("BasesRaiders", null, raidersNames);
-            SendBaseEventDiscord(message, webhookURL);
+            SendDiscordMessage(webhookURL, message);
         }
         // ################################################################
         // OnRaidableBaseEnded
@@ -1093,7 +805,7 @@ namespace Oxide.Plugins
         private void OnRaidableBaseEnded(Vector3 eventPos, int mode, bool allowPVP)
         {   // check if feature enabled
             var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
-            if (!(config?.Bases?.Enabled ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+            if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
                 return;
             // check for valid position
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
@@ -1104,24 +816,14 @@ namespace Oxide.Plugins
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
             var message = Lang("RaidableBaseEndedDiscord", null, GetDiscordTimestamp(), difficulty, PvX, mapSquare);
-            SendBaseEventDiscord(message, webhookURL);
-        }
-
-        private void SendBaseEventDiscord(string msg, string webhookURL)
-        {
-            if (config.Bases.DiscordNotify)
-            {
-                webhookURL = config.Webhooks.BasesWebhook ?? string.Empty;
-                if (!string.IsNullOrEmpty(webhookURL))
-                    SendDiscordMessage(webhookURL, msg);
-            }
+            SendDiscordMessage(webhookURL, message);
         }
 
         #endregion
 
         #region TRAVELLING VENDOR
 
-        // Listen for Travelling Vendor spawn
+        // Listen for Travelling Vendor spawn and the exact location of the spawn
         private void OnEntitySpawned(BaseNetworkable entity)
         {
             var vendor = entity as TravellingVendor;
@@ -1158,7 +860,6 @@ namespace Oxide.Plugins
             });
         }
 
-        // Stretch: Vendor despawn (must be reliable and safe)
         // Listen for Travelling Vendor despawn and the exact location of the despawn
         private void OnEntityKill(BaseNetworkable entity)
         {
@@ -1243,10 +944,8 @@ namespace Oxide.Plugins
 
         private void CheckUsersCfgHash()
         {
-            if (!(config?.UsersCfg?.Enabled ?? false))
-                return;
-
-            if (string.IsNullOrWhiteSpace(_usersCfgPath) ||
+            if (!(config?.UsersCfg?.Enabled ?? false) ||
+                string.IsNullOrWhiteSpace(_usersCfgPath) ||
                 !File.Exists(_usersCfgPath))
                 return;
 
@@ -1268,13 +967,9 @@ namespace Oxide.Plugins
                     // Notify only when: not first run, notifications enabled, and webhook is configured
                     if (!firstRun && !string.IsNullOrWhiteSpace(webhookURL) && notifyEnabled)
                         SendDiscordMessage(webhookURL, Lang("UsersCfgChangedDiscord", null, GetDiscordTimestamp(), lastHash, checksum));
-
                 }
             }
-            catch (Exception ex)
-            {
-                PrintWarning($"Error checking users.cfg checksum: {ex.Message}");
-            }
+            catch (Exception ex) { PrintWarning($"Error checking users.cfg checksum: {ex.Message}"); }
         }
 
         // Fletcher-16 checksum (big-endian), returned as 4-char uppercase hex (e.g., "1A2B")
@@ -1439,184 +1134,126 @@ namespace Oxide.Plugins
             mapSquare = "noAPI";
             monument = string.Empty;
 
-            if (apiResult is Tuple<string, string> t) { mapSquare = t.Item1 ?? mapSquare; monument = t.Item2; }
-            else if (apiResult is ValueTuple<string, string> vt) { mapSquare = vt.Item1 ?? mapSquare; monument = vt.Item2; }
-            else if (apiResult is object[] arr && arr.Length >= 1) { mapSquare = arr[0]?.ToString() ?? mapSquare; if (arr.Length >= 2) monument = arr[1]?.ToString(); }
-            else if (apiResult != null) mapSquare = apiResult.ToString();
-        }
-
-        // Posts a simple string message to Discord webhook using Oxide's webrequests library
-        private static readonly Dictionary<string, string> JsonHeaders = new Dictionary<string, string>
-        {
-            ["Content-Type"] = "application/json"
-        };
-
-        // Centralized Discord-specific text preparation
-        private static class DiscordText
-        {
-            // Call this before sending to Discord. Non-Discord paths should use the original message.
-            public static string Prepare(string input, DiscordConfig opt)
+            if (apiResult is ValueTuple<string, string>(string square, string mon))
             {
-                if (string.IsNullOrWhiteSpace(input) || opt == null) return input;
-
-                var text = input;
-
-                if (opt.EscapeMarkdown)
-                    text = EscapeMarkdown(text);
-
-                if (opt.BreakMentions)
-                    text = BreakMentions(text); // belt-and-braces; allowed_mentions also used
-
-                if (opt.TruncateToLimit && opt.ContentLimit > 0 && text.Length > opt.ContentLimit)
-                    text = Truncate(text, opt.ContentLimit, opt.TruncationSuffix);
-
-                return text;
-            }
-
-            // Escapes common Discord markdown tokens to avoid accidental formatting
-            public static string EscapeMarkdown(string value)
-            {
-                if (string.IsNullOrEmpty(value)) return value;
-
-                // Characters to escape in Discord markdown
-                // \ * _ ~ ` | > [ ] ( ) #
-                var sb = new StringBuilder(value.Length + 16);
-                for (int i = 0; i < value.Length; i++)
-                {
-                    char c = value[i];
-                    switch (c)
-                    {
-                        case '\\':
-                        case '*':
-                        case '_':
-                        case '~':
-                        case '`':
-                        case '|':
-                        case '>':
-                        case '[':
-                        case ']':
-                        case '(':
-                        case ')':
-                        case '#':
-                            sb.Append('\\').Append(c);
-                            break;
-                        default:
-                            sb.Append(c);
-                            break;
-                    }
-                }
-                return sb.ToString();
-            }
-
-            // Breaks @mentions with a zero-width space to avoid pings even in code/unexpected areas
-            public static string BreakMentions(string value)
-            {
-                if (string.IsNullOrEmpty(value)) return value;
-                // inserts U+200B after '@'
-                return value.Replace("@", "@\u200B");
-            }
-
-            public static string Truncate(string value, int max, string suffix)
-            {
-                if (string.IsNullOrEmpty(value) || value.Length <= max) return value;
-
-                var keep = Math.Max(0, max - (suffix?.Length ?? 0));
-                if (keep == 0) return value.Substring(0, max);
-
-                var truncated = value.Substring(0, keep);
-
-                // If we cut inside a code fence, close it (simple heuristic)
-                var openFences = CountOccurrences(truncated, "```") % 2 == 1;
-                if (openFences) truncated += "```";
-
-                return truncated + (suffix ?? string.Empty);
-            }
-
-            private static int CountOccurrences(string haystack, string needle)
-            {
-                if (string.IsNullOrEmpty(haystack) || string.IsNullOrEmpty(needle)) return 0;
-
-                int count = 0, pos = 0;
-                while ((pos = haystack.IndexOf(needle, pos, StringComparison.Ordinal)) >= 0)
-                {
-                    count++;
-                    pos += needle.Length;
-                }
-                return count;
+                mapSquare = square ?? mapSquare;
+                monument = mon;
             }
         }
 
-        private static string JsonEscape(string s)
+        // Enqueue or send message (public facing)
+        private void SendDiscordMessage(string webhookUrl, string message)
         {
-            if (string.IsNullOrEmpty(s)) return string.Empty;
-            var sb = new StringBuilder(s.Length + 16);
-            foreach (var c in s)
-            {
-                switch (c)
-                {
-                    case '\"': sb.Append("\\\""); break;
-                    case '\\': sb.Append("\\\\"); break;
-                    case '\b': sb.Append("\\b"); break;
-                    case '\f': sb.Append("\\f"); break;
-                    case '\n': sb.Append("\\n"); break;
-                    case '\r': sb.Append("\\r"); break;
-                    case '\t': sb.Append("\\t"); break;
-                    default:
-                        if (c < 32) sb.AppendFormat("\\u{0:X4}", (int)c);
-                        else sb.Append(c);
-                        break;
-                }
-            }
-            return sb.ToString();
+            if (string.IsNullOrWhiteSpace(webhookUrl) || string.IsNullOrWhiteSpace(message))
+                return; // nothing to send
+
+            // Discord has a strict 2000-character limit
+            const int maxLen = 2000;
+            if (message.Length > maxLen)
+                message = message.Substring(0, maxLen - 3) + "...";
+
+            // Prepare JSON payload
+            var payload = JsonConvert.SerializeObject(new { content = message });
+
+            EnqueueDiscordMessage(webhookUrl, payload);
         }
 
-
-        /// <summary>
-        /// Send a message to a DiscordConfig webhook.
-        /// NOTE: changed parameter type to DiscordConfig (your config class).
-        /// </summary>
-        private void SendDiscordMessage(string webhookURL, string content) =>
-                     SendDiscordMessage(webhookURL, content, config?.Discord);
-        private void SendDiscordMessage(string webhookURL, string content, DiscordConfig opt, string overrideUsername = null, string overrideAvatarUrl = null)
+        // Push a prepared payload into the queue
+        private void EnqueueDiscordMessage(string webhookUrl, string jsonPayload)
         {
-            if (string.IsNullOrWhiteSpace(webhookURL) || string.IsNullOrWhiteSpace(content) || opt == null)
+            if (string.IsNullOrWhiteSpace(webhookUrl) || string.IsNullOrWhiteSpace(jsonPayload))
                 return;
 
-            var prepared = DiscordText.Prepare(content, opt);
-
-            // Build minimal JSON payload with optional username/avatar and allowed_mentions
-            var username = string.IsNullOrWhiteSpace(overrideUsername) ? opt.Username : overrideUsername;
-            var avatar = string.IsNullOrWhiteSpace(overrideAvatarUrl) ? opt.AvatarUrl : overrideAvatarUrl;
-
-            // allowed_mentions empty to suppress @everyone/@here/role mentions if desired
-            var allowedMentionsFragment = opt.SuppressPings ? "\"allowed_mentions\":{\"parse\":[]}" : null;
-
-            var parts = new List<string>
-                { $"\"content\":\"{JsonEscape(prepared)}\"" };
-            if (!string.IsNullOrWhiteSpace(username)) parts.Add($"\"username\":\"{JsonEscape(username)}\"");
-            if (!string.IsNullOrWhiteSpace(avatar)) parts.Add($"\"avatar_url\":\"{JsonEscape(avatar)}\"");
-            if (allowedMentionsFragment != null) parts.Add(allowedMentionsFragment);
-
-            var payload = "{" + string.Join(",", parts) + "}";
-
-            // Use configured timeout (seconds) and log control
-            float timeout = Math.Max(1f, (float)opt.TimeoutSeconds);
-
-            var headers = new Dictionary<string, string>(JsonHeaders);
-
-            // Enqueue the web request. Replace any previous webrequest.Enqueue call with this.
-            webrequest.EnqueuePost(webhookURL, payload, (code, response) =>
+            lock (_discordQueueLock)
             {
-                if (code >= 200 && code < 300) return;
+                _discordQueue.Enqueue(new DiscordMessage { WebhookUrl = webhookUrl, Payload = jsonPayload });
 
-                if (opt.LogFailures)
-                {
-                    var snippet = string.IsNullOrEmpty(response) ? "<empty>" :
-                                  response.Length > 160 ? response.Substring(0, 160) + "..." : response;
-                    PrintWarning($"Discord webhook failed: HTTP {code} | {snippet}");
-                }
-            }, this, headers, timeout);
+                // start queue worker if not already running
+                if (_discordQueueTimer == null)
+                    _discordQueueTimer = timer.Every(DiscordIntervalSeconds, ProcessDiscordQueue);
+            }
         }
+
+        // Worker: processes one message (FIFO) per tick
+        private void ProcessDiscordQueue()
+        {
+            DiscordMessage item = null;
+            lock (_discordQueueLock)
+            {
+                if (_discordQueue.Count == 0)
+                {
+                    _discordQueueTimer?.Destroy();
+                    _discordQueueTimer = null;
+                    return;
+                }
+                item = _discordQueue.Peek(); // don’t remove yet
+            }
+
+            if (item == null)
+            {
+                lock (_discordQueueLock) { if (_discordQueue.Count > 0) _discordQueue.Dequeue(); }
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(item.WebhookUrl))
+            {
+                // drop bad entry and continue next tick
+                lock (_discordQueueLock) { if (_discordQueue.Count > 0) _discordQueue.Dequeue(); }
+                return;
+            }
+
+            webrequest.Enqueue(
+                item.WebhookUrl,
+                item.Payload,
+                (code, response) =>
+                {
+                    if (code == 200 || code == 204)
+                    {
+                        // success: now drop it from the queue
+                        lock (_discordQueueLock) { _discordQueue.Dequeue(); }
+                        return;
+                    }
+
+                    if (code == 429)
+                    {
+                        int retryAfterMs = 5000; // safe fallback
+                        try
+                        {
+                            var obj = JsonConvert.DeserializeObject<Dictionary<string, object>>(response);
+                            if (obj != null && obj.TryGetValue("retry_after", out var retryVal))
+                                if (int.TryParse(retryVal.ToString(), out var parsed))
+                                    retryAfterMs = parsed;
+                        }
+                        catch { /* ignore parse errors */ }
+
+                        PrintWarning($"[Discord] Rate limited, retrying in {retryAfterMs} ms");
+
+                        // stop normal processing
+                        _discordQueueTimer?.Destroy();
+                        _discordQueueTimer = null;
+
+                        // after retry_after ms, resume the normal 1s queue worker
+                        timer.Once(retryAfterMs / 1000f, () =>
+                        {
+                            lock (_discordQueueLock)
+                            {
+                                if (_discordQueueTimer == null && _discordQueue.Count > 0)
+                                    _discordQueueTimer = timer.Every(DiscordIntervalSeconds, ProcessDiscordQueue);
+                            }
+                        });
+                        return;
+                    }
+
+                    // other errors: just drop and warn
+                    PrintWarning($"[Discord] Failed ({code}): {response}");
+                    lock (_discordQueueLock) { _discordQueue.Dequeue(); }
+                },
+                this,
+                Oxide.Core.Libraries.RequestMethod.POST,
+                new Dictionary<string, string> { ["Content-Type"] = "application/json" }
+            );
+        }
+
         #endregion
     }
 }

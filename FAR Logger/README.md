@@ -20,6 +20,12 @@ FAR Logger provides comprehensive monitoring and utility features, including:
 *   **`/wipe` Chat Command:** Allows players to retrieve the exact date, time, and remaining time until the next server wipe via an in-game chat command, with full localization support.
 *   **Granular Control:** All monitored functions can be individually enabled/disabled, with separate Discord notification toggles, allowing flexible control without needing to modify webhook configurations.
 
+## Changelog
+
+### 1.2.5 - 2025-09-20
+*   **Added rustmaps.com support:** If you configure your API Key for rustmaps.com your new map can now be requested to be generated automatically
+*   **Code cleanup:** Removed unused code and configuration, improved Discord messages with a simple queue and retry to handle getting rate limited
+
 ## Highlights
 
 ### Automated Supply Drop Loot Announcements: Ending PvE Frustration
@@ -27,6 +33,7 @@ On PvE servers, the claiming of Supply Drops can often be a source of confusion 
 
 ### Intelligent Server Wipe Notifications to Discord
 Keeping your community informed about server wipes is crucial. FAR Logger automates this process by monitoring the server's `worldSize` and `mapSeed` at startup. Any change in these core parameters signals a new wipe, triggering an immediate Discord notification: "Server Wipe detected!" Crucially, this message includes a dynamically generated link to rustmaps.com, pre-populated with the new world size and map seed, allowing your community to instantly preview the new map directly within Discord. This ensures players always know when they can reconnect and what the new landscape looks like, even if they can't be online for the wipe itself.
+If you're a registered rustmaps.com user you can now configure your API Key and have **FAR: Logger** automatically request map generation for you.
 
 ### "Doorknockers" - Monitoring Failed Player Connections
 Understanding why players fail to connect is vital for server health and support. The "Doorknockers" feature monitors and logs all failed connection attempts, notifying Discord with details such as the player's IP address and the reason for failure (e.g., banned, Steam authentication issues). This real-time visibility is an invaluable tool for diagnosing player-reported connection problems, identifying potential bad actors, or flagging wider Steam service outages.
@@ -50,7 +57,6 @@ The plugin offers extensive configuration options to fine-tune every aspect of l
 {
   "General": {
     "PluginMonitorStartupIgnoreSeconds": 120, // Number of seconds to ignore plugin load/unload/reload events at startup to avoid spam.
-    "DefaultLanguage": "en", // Default language for localized messages (e.g., for /wipe command).
     "Use24HourTime": true // Use 24-hour format for time displays.
   },
   "Webhooks": {
@@ -84,15 +90,8 @@ The plugin offers extensive configuration options to fine-tune every aspect of l
   },
   "ServerWipes": {
     "Enabled": true, // Enable/disable server wipe monitoring.
-    "DiscordNotify": true // Enable/disable Discord notifications for server wipes.
-  },
-  "FARTrapper": {
-    "Enabled": true, // (Obsolete) Enable/disable FARTrapper monitoring.
-    "DiscordNotify": true // (Obsolete) Enable/disable Discord notifications for FARTrapper.
-  },
-  "FARNoPvP": {
-    "Enabled": true, // (Obsolete) Enable/disable FARNoPvP monitoring.
-    "DiscordNotify": true // (Obsolete) Enable/disable Discord notifications for FARNoPvP.
+    "DiscordNotify": true, // Enable/disable Discord notifications for server wipes.
+    "RustMapsApiKey": "" // rustmaps.com API Key to automate map generation requests.
   },
   "Bases": {
     "Enabled": true, // Enable/disable Raidable/Abandoned Bases monitoring.
@@ -145,9 +144,6 @@ FAR Logger supports **partial localization** for messages related to the /wipe c
 
 ## Permissions
 None.
-
-## To-Do
-We are aware that certain parts of this plugin, specifically the monitoring of FARNoPVP and FARTrapper, are now obsolete as their functionalities have been integrated and enhanced within our "FAR: Damage Reflection" plugin. Redundant functionality and configuration options for these features will be removed in the next code cleanup and update.
 
 ## Installation
 1.  Download the FARLogger.cs file.
