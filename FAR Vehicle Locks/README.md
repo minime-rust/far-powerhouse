@@ -7,6 +7,10 @@ The **FAR Vehicle Locks** plugin offers a robust, configurable, and significantl
 
 ## Changelog
 
+### 1.0.6 - 2025-09-21
+*   **Added Push Prevention:** Added a method to prevent pushing vehicles which are owned by another player (non-team)
+*   **Adjusted Discord Messages** Adjusted messages sent to Discord to use other emojis and be more meaningful
+
 ### 1.0.5 - 2025-09-16
 *   **Added Discord Notifications:** Added notifications to a Discord webhook in case of locking or unlocking and death (destruction) of a vehicle
 

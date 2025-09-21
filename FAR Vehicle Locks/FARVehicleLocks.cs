@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Vehicle Locks", "miniMe", "1.0.5")]
+    [Info("FAR: Vehicle Locks", "miniMe", "1.0.6")]
     [Description("OwnerID-driven vehicle access control, decay, and hints without physical locks.")]
     public class FARVehicleLocks : RustPlugin
     {
@@ -539,6 +539,22 @@ namespace Oxide.Plugins
             }
         }
 
+        private object OnVehiclePush(BaseVehicle vehicle, BasePlayer player)
+        {
+            if (vehicle == null || player == null ||
+                permission.UserHasPermission(player.UserIDString, PermBypass))
+                return null;
+
+            if (!IsAuthorized(vehicle, player))
+            {
+                var typeKey = ResolveTypeKey(vehicle);
+                var ownerName = OwnerName(vehicle.OwnerID);
+                player.ChatMessage(Lang("DeniedInteract", player, _config.VehicleTypes[typeKey].DisplayName, ownerName));
+                return false; // <-- BLOCK push
+            }
+            return null;
+        }
+
         private object CanMountEntity(BasePlayer player, BaseMountable mount)
         {
             if (player == null || mount == null || !IsDriverSeat(mount) ||
@@ -704,7 +720,7 @@ namespace Oxide.Plugins
                 var typeKey = vs.TypeKey ?? ResolveTypeKey(be);
                 if (!string.IsNullOrEmpty(typeKey) && _config.VehicleTypes.TryGetValue(typeKey, out var cfg))
                 {
-                    var msg = $":boom: {GetDiscordTimestamp()} `{cfg.DisplayName}` owned by `{vs.OwnerName}` was destroyed.";
+                    var msg = $":boom: {GetDiscordTimestamp()} `{cfg.DisplayName}` owned by `{vs.OwnerName}` is no more.";
                     SendDiscordMessage(_config.DiscordWebhook, msg);
                 }
 
@@ -761,7 +777,7 @@ namespace Oxide.Plugins
                         owner.ChatMessage(Lang("DecayedOwnership", owner, cfg.DisplayName));
 
                     // notify Discord
-                    var message = $":timer: {GetDiscordTimestamp()} `{cfg.DisplayName}` ownership of `{OwnerName(prevOwnerId)}` decayed";
+                    var message = $":unlock: {GetDiscordTimestamp()} `{cfg.DisplayName}` ownership of `{OwnerName(prevOwnerId)}` decayed";
                     SendDiscordMessage(_config.DiscordWebhook, message);
                 }
             }
@@ -832,7 +848,7 @@ namespace Oxide.Plugins
             player.ChatMessage(Lang("LockedNowOwnerAssigned", player, cfg.DisplayName));
 
             // notify Discord
-            var message = $":carousel_horse: {GetDiscordTimestamp()} `{cfg.DisplayName}` was locked by `{player.displayName}`";
+            var message = $":closed_lock_with_key: {GetDiscordTimestamp()} `{cfg.DisplayName}` was locked by `{player.displayName}`";
             SendDiscordMessage(_config.DiscordWebhook, message);
         }
 
@@ -864,7 +880,7 @@ namespace Oxide.Plugins
             player.ChatMessage(Lang("UnlockedNow", player, cfg.DisplayName));
 
             // notify Discord
-            var message = $":carousel_horse: {GetDiscordTimestamp()} `{cfg.DisplayName}` was unlocked by `{player.displayName}`";
+            var message = $":unlock: {GetDiscordTimestamp()} `{cfg.DisplayName}` was unlocked by `{player.displayName}`";
             SendDiscordMessage(_config.DiscordWebhook, message);
         }
 
