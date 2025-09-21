@@ -22,6 +22,9 @@ FAR Logger provides comprehensive monitoring and utility features, including:
 
 ## Changelog
 
+### 1.2.6 - 2025-09-21
+*   **Code cleanup:** Simplified the queue, solving a race condition between concurrent timers. Now there is only 1 worker responsible for the queue.
+
 ### 1.2.5 - 2025-09-20
 *   **Added rustmaps.com support:** If you configure your API Key for rustmaps.com your new map can now be requested to be generated automatically
 *   **Code cleanup:** Removed unused code and configuration, improved Discord messages with a simple queue and retry to handle getting rate limited

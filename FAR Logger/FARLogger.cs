@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Logger", "miniMe", "1.2.5")]
+    [Info("FAR: Logger", "miniMe", "1.2.6")]
     [Description("A flexible, Discord-integrated event logger for admins")]
 
     public class FARLogger : CovalencePlugin
@@ -209,28 +209,31 @@ namespace Oxide.Plugins
         private void SaveDataImmediate()
         { Interface.Oxide.DataFileSystem.WriteObject(Name, data); }
 
+        // #####################################################################
         // Wipe (server.seed) Monitor
         private uint GetWipeSeed() => data?.Wipe?.Seed ?? 0u;
         private void SetWipeSeed(uint seed) { data.Wipe.Seed = seed; SaveDataDebounced(); }
         // "server/{identity}/cfg/users.cfg" Monitor
         private string GetLastHash() => data?.UsersCfg?.LastHash ?? string.Empty;
         private void SetLastHash(string hash) { data.UsersCfg.LastHash = hash; SaveDataDebounced(); }
-        // #####################################################################
-
         // Airdrop tracking: in-memory to avoid double notification per crate
         private readonly HashSet<ulong> lootedSupplyDrops = new HashSet<ulong>();
 
+        // #####################################################################
         // Discord Message Queue
         private class DiscordMessage
         {
             public string WebhookUrl;
             public string Payload; // already JSON-serialized payload ({"content":"..."})
         }
-        private readonly Queue<DiscordMessage> _discordQueue = new Queue<DiscordMessage>();
+        private bool _discordSendInProgress; // controls whether a message can be removed from queue
+        private int _discordRetryAfterMs; // 0 = normal, >0 = wait that many ms before trying again
+
         private Timer _discordQueueTimer;
+        private readonly Queue<DiscordMessage> _discordQueue = new Queue<DiscordMessage>();
         private const float DiscordIntervalSeconds = 1.0f; // 1 message per second default (tuneable)
         private readonly object _discordQueueLock = new object();
-
+        // #####################################################################
         // Plugin load time
         private DateTime pluginStartTime = DateTime.UtcNow;
 
@@ -1177,6 +1180,17 @@ namespace Oxide.Plugins
         // Worker: processes one message (FIFO) per tick
         private void ProcessDiscordQueue()
         {
+            if (_discordSendInProgress)
+                return; // still waiting on a send to complete
+
+            if (_discordRetryAfterMs > 0)
+            {
+                _discordRetryAfterMs -= (int)(DiscordIntervalSeconds * 1000);
+                if (_discordRetryAfterMs > 0)
+                    return; // still cooling down
+                _discordRetryAfterMs = 0;
+            }
+
             DiscordMessage item = null;
             lock (_discordQueueLock)
             {
@@ -1186,74 +1200,65 @@ namespace Oxide.Plugins
                     _discordQueueTimer = null;
                     return;
                 }
-                item = _discordQueue.Peek(); // don’t remove yet
+                item = _discordQueue.Peek();
             }
 
-            if (item == null)
+            if (item == null || string.IsNullOrWhiteSpace(item.WebhookUrl))
             {
-                lock (_discordQueueLock) { if (_discordQueue.Count > 0) _discordQueue.Dequeue(); }
+                lock (_discordQueueLock)
+                {
+                    if (_discordQueue.Count > 0)
+                        _discordQueue.Dequeue(); // drop invalid
+                }
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(item.WebhookUrl))
-            {
-                // drop bad entry and continue next tick
-                lock (_discordQueueLock) { if (_discordQueue.Count > 0) _discordQueue.Dequeue(); }
-                return;
-            }
+            _discordSendInProgress = true;
 
             webrequest.Enqueue(
                 item.WebhookUrl,
                 item.Payload,
                 (code, response) =>
                 {
-                    if (code == 200 || code == 204)
+                    try
                     {
-                        // success: now drop it from the queue
-                        lock (_discordQueueLock)
+                        if (code == 200 || code == 204)
                         {
-                            if (_discordQueue.Count > 0)
-                                _discordQueue.Dequeue();
-                        }
-                        return;
-                    }
-
-                    if (code == 429)
-                    {
-                        int retryAfterMs = 5000; // safe fallback
-                        try
-                        {
-                            var obj = JsonConvert.DeserializeObject<Dictionary<string, object>>(response);
-                            if (obj != null && obj.TryGetValue("retry_after", out var retryVal))
-                                if (int.TryParse(retryVal.ToString(), out var parsed))
-                                    retryAfterMs = parsed;
-                        }
-                        catch { /* ignore parse errors */ }
-
-                        PrintWarning($"[Discord] Rate limited, retrying in {retryAfterMs} ms");
-
-                        // stop normal processing
-                        _discordQueueTimer?.Destroy();
-                        _discordQueueTimer = null;
-
-                        // after retry_after ms, resume the normal 1s queue worker
-                        timer.Once(retryAfterMs / 1000f, () =>
-                        {
+                            // success: let worker remove next tick
                             lock (_discordQueueLock)
+                                if (_discordQueue.Count > 0) _discordQueue.Dequeue();
+                        }
+                        else if (code == 429)
+                        {
+                            int retryAfterMs = 5000; // safe fallback
+                            try
                             {
-                                if (_discordQueueTimer == null && _discordQueue.Count > 0)
-                                    _discordQueueTimer = timer.Every(DiscordIntervalSeconds, ProcessDiscordQueue);
+                                var obj = JsonConvert.DeserializeObject<Dictionary<string, object>>(response);
+                                if (obj != null && obj.TryGetValue("retry_after", out var retryVal))
+                                    if (int.TryParse(retryVal.ToString(), out var parsed))
+                                        retryAfterMs = parsed;
                             }
-                        });
-                        return;
-                    }
+                            catch { /* swallow */ }
 
-                    // other errors: just drop and warn
-                    PrintWarning($"[Discord] Failed ({code}): {response}");
-                    lock (_discordQueueLock) { _discordQueue.Dequeue(); }
-                },
-                this,
-                Oxide.Core.Libraries.RequestMethod.POST,
+                            PrintWarning($"[Discord] Rate limited, retrying in {retryAfterMs} ms");
+                            _discordRetryAfterMs = retryAfterMs;
+                            // don’t dequeue, worker will retry same item
+                        }
+                        else if (code >= 500)
+                        {
+                            // Discord server error → transient → keep in queue for retry
+                            PrintWarning($"[Discord] Server error {code}, will retry");
+                        }
+                        else
+                        {
+                            // Client error (bad webhook, unauthorized, etc.) → permanent → drop
+                            PrintWarning($"[Discord] Permanent failure ({code}), dropping message");
+                            lock (_discordQueueLock)
+                                if (_discordQueue.Count > 0) _discordQueue.Dequeue();
+                        }
+                    }
+                    finally { _discordSendInProgress = false; }
+                }, this, Oxide.Core.Libraries.RequestMethod.POST,
                 new Dictionary<string, string> { ["Content-Type"] = "application/json" }
             );
         }
