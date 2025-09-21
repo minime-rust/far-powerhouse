@@ -25,14 +25,17 @@ if (farMapHelperPlugin != null)
     // Define the position you want to query
     Vector3 targetPosition = new Vector3(1234f, 0f, 5678f); // Example position
 
+    var mapSquare = "noAPI";
+    var monumentName = string.Empty;
+
     // Call the API_MapInfo hook with the position
     var apiResult = farMapHelperPlugin.Call("API_MapInfo", targetPosition);
 
-    // Process the result, which is expected to be a Tuple<string, string>
-    if (apiResult is Tuple<string, string> resultTuple)
+    // Process the result, which is expected to be a ValueTuple<string, string>
+    if (apiResult is ValueTuple<string, string>(string square, string monument))
     {
-        string mapSquare = resultTuple.Item1;    // e.g., "A13" or "off-grid" if outside of the map
-        string monumentName = resultTuple.Item2; // e.g., "Arctic Research Base" or string.Empty
+        mapSquare = square ?? mapSquare; // e.g., "A13" or "off-grid" if outside of the map
+        monumentName = monument;         // e.g., "Arctic Research Base" or string.Empty
 
         // Now you can use mapSquare and monumentName in your plugin logic
         // Example: Puts($"Position is in {mapSquare} (Monument: {monumentName})");
