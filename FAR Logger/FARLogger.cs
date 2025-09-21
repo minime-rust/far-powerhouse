@@ -1210,7 +1210,11 @@ namespace Oxide.Plugins
                     if (code == 200 || code == 204)
                     {
                         // success: now drop it from the queue
-                        lock (_discordQueueLock) { _discordQueue.Dequeue(); }
+                        lock (_discordQueueLock)
+                        {
+                            if (_discordQueue.Count > 0)
+                                _discordQueue.Dequeue();
+                        }
                         return;
                     }
 
