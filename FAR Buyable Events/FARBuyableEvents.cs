@@ -12,7 +12,7 @@ namespace Oxide.Plugins
     [Description("Make Patrol Chopper and Launchsite Bradley buyable with configured item")]
     public class FARBuyableEvents : RustPlugin
     {
-        [PluginReference] private Plugin MonumentFinder;
+        [PluginReference] private Plugin FARLogger, MonumentFinder;
 
         class ConfigData
         {
@@ -417,6 +417,16 @@ namespace Oxide.Plugins
             const int maxLen = 2000;
             if (message.Length > maxLen)
                 message = message.Substring(0, maxLen - 3) + "...";
+
+            // #####################################################
+            // Try to hand off to FAR Logger if available
+            var result = FARLogger?.Call("API_SendDiscordMessage", webhookUrl, message);
+
+            if (result is bool ok && ok)
+                return; // Hand-off succeeded, FAR Logger took it
+
+            // #####################################################
+            // FAR Logger not present, or refused → fallback to direct webrequest
 
             // Escape safely by letting JSON serializer handle quotes, slashes, etc.
             var payload = JsonConvert.SerializeObject(new { content = message });

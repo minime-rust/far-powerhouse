@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Oxide.Core;
 using Oxide.Core.Libraries;
 using Oxide.Core.Libraries.Covalence;
+using Oxide.Core.Plugins;
 using Rust;
 using UnityEngine;
 
@@ -14,6 +15,12 @@ namespace Oxide.Plugins
     [Description("OwnerID-driven vehicle access control, decay, and hints without physical locks.")]
     public class FARVehicleLocks : RustPlugin
     {
+        // #####################################################
+        // allow Discord hand-off to FAR: Logger 
+        [PluginReference]
+        private Plugin FARLogger;
+        // #####################################################
+
         #region Config
 
         private PluginConfig _config;
@@ -431,6 +438,16 @@ namespace Oxide.Plugins
             const int maxLen = 2000;
             if (message.Length > maxLen)
                 message = message.Substring(0, maxLen - 3) + "...";
+
+            // #####################################################
+            // Try to hand off to FAR Logger if available
+            var result = FARLogger?.Call("API_SendDiscordMessage", webhookUrl, message);
+
+            if (result is bool ok && ok)
+                return; // Hand-off succeeded, FAR Logger took it
+
+            // #####################################################
+            // FAR Logger not present, or refused → fallback to direct webrequest
 
             // Escape safely by letting JSON serializer handle quotes, slashes, etc.
             var payload = JsonConvert.SerializeObject(new { content = message });

@@ -7,6 +7,9 @@ The **FAR Vehicle Locks** plugin offers a robust, configurable, and significantl
 
 ## Changelog
 
+### 1.0.6 - 2025-09-22
+*   **Hand-Off to FAR Logger:** Added a method to (optionally) hand-off Discord notifications to FAR Logger's message queue
+
 ### 1.0.6 - 2025-09-21
 *   **Added Push Prevention:** Added a method to prevent pushing vehicles which are owned by another player (non-team)
 *   **Adjusted Discord Messages** Adjusted messages sent to Discord to use other emojis and be more meaningful

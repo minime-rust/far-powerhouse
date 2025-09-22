@@ -56,7 +56,7 @@ namespace Oxide.Plugins
         private HashSet<BasePlayer> currentlyProcessing = new HashSet<BasePlayer>();
 
         // support event zones to exempt players from Damage Reflection
-        [PluginReference] Plugin ZoneManager, DynamicPVP;
+        [PluginReference] Plugin DynamicPVP, FARLogger, ZoneManager;
 
         #region Localization
         // Notice: no explicit "en" argument here. If you omit it, Oxide automatically treats this as the
@@ -1654,6 +1654,16 @@ namespace Oxide.Plugins
             const int maxLen = 2000;
             if (message.Length > maxLen)
                 message = message.Substring(0, maxLen - 3) + "...";
+
+            // #####################################################
+            // Try to hand off to FAR Logger if available
+            var result = FARLogger?.Call("API_SendDiscordMessage", webhookUrl, message);
+
+            if (result is bool ok && ok)
+                return; // Hand-off succeeded, FAR Logger took it
+
+            // #####################################################
+            // FAR Logger not present, or refused → fallback to direct webrequest
 
             // Escape safely by letting JSON serializer handle quotes, slashes, etc.
             var payload = JsonConvert.SerializeObject(new { content = message });

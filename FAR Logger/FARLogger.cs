@@ -1144,6 +1144,24 @@ namespace Oxide.Plugins
             }
         }
 
+        // Public-facing entrypoint for other plugins to hand off Discord messages
+        private object API_SendDiscordMessage(string webhookUrl, string message)
+        {
+            if (string.IsNullOrWhiteSpace(webhookUrl) || string.IsNullOrWhiteSpace(message))
+                return null; // invalid handoff
+
+            try
+            {  // handshake / ack
+                SendDiscordMessage(webhookUrl, message);
+                return true;
+            }
+            catch (Exception ex)
+            {   // signal failure, caller should fallback
+                PrintWarning($"API_SendDiscordMessage failed: {ex.Message}");
+                return null;
+            }
+        }
+
         // Enqueue or send message (public facing)
         private void SendDiscordMessage(string webhookUrl, string message)
         {

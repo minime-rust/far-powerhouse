@@ -29,6 +29,9 @@ This is our most complex and ambitious plugin to date, representing a significan
 
 ## Changelog
 
+### 1.1.4 - 2025-09-22
+*   **Hand-Off to FAR Logger:** Added a method to (optionally) hand-off Discord notifications to FAR Logger's message queue
+
 ### 1.1.4 - 2025-09-19
 *   **Improved Auto-Kick:** Adjusted monument detection to avoid unwanted kicks on friendly fire between team members inside monument boundaries.
 

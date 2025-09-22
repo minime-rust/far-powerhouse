@@ -3,6 +3,11 @@
 ## Description
 The **FAR Buyable Events** plugin introduces a dynamic new layer of risk and reward to your Rust server. Moving beyond the often-underwhelming vanilla Supply Drop, this plugin empowers players to trade their Supply Signals for a chance to summon more challenging and potentially far more lucrative events: the Launch Site Bradley APC or the formidable Patrol Helicopter. Unlike other event-calling plugins, FAR Buyable Events focuses on seamlessly integrating these high-stakes opportunities into existing gameplay without intruding on the server's core experience, offering a unique concept that transforms a low-risk item into a high-impact gamble.
 
+## Changelog
+
+### 1.0.0 - 2025-09-22
+*   **Hand-Off to FAR Logger:** Added a method to (optionally) hand-off Discord notifications to FAR Logger's message queue
+
 ## The Concept: Turning "Meh" into "More!"
 
 Vanilla Supply Signals, while a classic Rust item, often yield rewards that don't quite match the effort of acquiring them, especially on PvE servers where competition is minimal. What if a Supply Signal could be a key to something more exciting?

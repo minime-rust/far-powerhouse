@@ -22,6 +22,9 @@ FAR Logger provides comprehensive monitoring and utility features, including:
 
 ## Changelog
 
+### 1.2.6 - 2025-09-22
+*   **Message Injection:** Added a method to (optionally) handle Discord notifications from other plugins in the FAR framework
+
 ### 1.2.6 - 2025-09-21
 *   **Code cleanup:** Simplified the queue, solving a race condition between concurrent timers. Now there is only 1 worker responsible for the queue.
 
