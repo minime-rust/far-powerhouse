@@ -20,6 +20,41 @@ FAR Logger provides comprehensive monitoring and utility features, including:
 *   **`/wipe` Chat Command:** Allows players to retrieve the exact date, time, and remaining time until the next server wipe via an in-game chat command, with full localization support.
 *   **Granular Control:** All monitored functions can be individually enabled/disabled, with separate Discord notification toggles, allowing flexible control without needing to modify webhook configurations.
 
+## API - For Plugin Developers
+The plugin exposes a straightforward API that other plugins can leverage to hand-off and dispatch Discord messages. This API returns a non-null response on success.
+
+This allows other plugins to easily hand-off Discord messages and rely on FAR Logger's internal message queue and dispatching without having to reinvent the wheel.
+
+**API Usage Example:**
+
+```csharp
+// To call the FAR Logger API from another plugin. First, get a reference to the plugin:
+var farLoggerPlugin = Plugin.Find("FARLogger");
+
+if (farLoggerPlugin != null)
+{
+    // Define the webhookUrl and message you want to send to Discord
+    string webhookUrl = "https://discord.app/your/webhook/goes/here";   // Example webhook
+    string message = "Your Discord message goes here"                   // Example message
+
+    if (string.IsNullOrWhiteSpace(webhookUrl) || string.IsNullOrWhiteSpace(message))
+        return; // nothing to send
+
+    // Try to hand off to FAR Logger if available
+    var result = farLoggerPlugin.Call("API_SendDiscordMessage", webhookUrl, message);
+
+    if (result is bool ok && ok)
+    {
+        return; // Hand-off succeeded, FAR Logger took your message
+    }
+    else
+    {
+        /* your logic for such cases where the hand-off failed */
+    }
+}
+
+```
+
 ## Changelog
 
 ### 1.2.6 - 2025-09-22
