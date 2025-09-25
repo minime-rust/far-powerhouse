@@ -15,7 +15,7 @@ using UnityEngine;                      // BasePlayer, GameObject, etc.
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Damage Reflection", "miniMe", "1.1.4")]
+    [Info("FAR: Damage Reflection", "miniMe", "1.1.5")]
     [Description("Based on Chernarust's 'ReflectDamage' plugin. Reflects configurable portions of damage back to players, amplifies headshot damage, and optionally applies a bleeding effect to the attacker. Improves basic TC security. Requires specific permission for bypass.")]
 
     public class FARDamageReflection : RustPlugin
@@ -980,7 +980,8 @@ namespace Oxide.Plugins
         {
             "explosive.timed",   // covers "explosive.timed.deployed"
             "explosive.satchel", // covers "explosive.satchel.deployed"
-            "rocket_"            // covers "rocket_basic", "rocket_hv", "rocket_mlrs"
+            "rocket_",           // covers "rocket_basic", "rocket_hv", "rocket_mlrs"
+            "survey_charge"      // let's not forget the survey_charge explosives
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1009,28 +1010,30 @@ namespace Oxide.Plugins
 
         private static bool IsExplosiveOrIncendiary(HitInfo info)
         {
-            // Primary: damage types
+            // 1. Damage types
             var types = info.damageTypes;
             if (types != null && (types.Has(DamageType.Explosion) || types.Has(DamageType.Heat)))
                 return true;
 
-            // Secondary: ammo shortname
+            // 2. Ammo shortname (mostly bullets)
             var ammoShort = info.Weapon?.GetItem()?.info?.shortname;
             if (!string.IsNullOrEmpty(ammoShort) && ExplIncAmmo.Contains(ammoShort))
                 return true;
 
-            // Hints: normalized prefab names (single call each)
-            if (HasExplosiveHint(info.WeaponPrefab?.ShortPrefabName)) return true;
+            // 3. Weapon prefab
+            var weaponPrefab = NormalizeShortName(info.WeaponPrefab?.ShortPrefabName);
+            if (HasExplosiveHint(weaponPrefab))
+                return true;
 
-            // Projectile prefab fix
-            var projName = info.ProjectilePrefab?.name;
-            if (!string.IsNullOrEmpty(projName))
-            {
-                projName = projName.Replace("(Clone)", "").Replace(".prefab", "").ToLower();
-                if (HasExplosiveHint(projName)) return true;
-            }
+            // 4. Projectile prefab
+            var projPrefab = NormalizeShortName(info.ProjectilePrefab?.name);
+            if (HasExplosiveHint(projPrefab))
+                return true;
 
-            if (HasExplosiveHint((info.Initiator as BaseEntity)?.ShortPrefabName)) return true;
+            // 5. Initiator entity
+            var initiatorPrefab = NormalizeShortName((info.Initiator as BaseEntity)?.ShortPrefabName);
+            if (HasExplosiveHint(initiatorPrefab))
+                return true;
 
             return false;
         }

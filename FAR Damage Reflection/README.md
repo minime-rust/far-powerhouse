@@ -29,6 +29,9 @@ This is our most complex and ambitious plugin to date, representing a significan
 
 ## Changelog
 
+### 1.1.5 - 2025-09-25
+*   **Refined rocket detection:** Refined the way rocket fire is detected. Should now reliably detect rockets shot at another player's base.
+
 ### 1.1.4 - 2025-09-22
 *   **Hand-Off to FAR Logger:** Added a method to (optionally) hand-off Discord notifications to FAR Logger's message queue
 
