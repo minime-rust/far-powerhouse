@@ -5,6 +5,10 @@ The **FAR Buyable Events** plugin introduces a dynamic new layer of risk and rew
 
 ## Changelog
 
+### 1.0.1 - 2025-09-25
+*   **Corrected spawn distance:** Fixed a bug where the patrol helicopter would not spawn at the configured distance from the player
+*   **Added global chat warning:** Added a warning in global chat - so that everyone on the server knows when Bradley or a Chopper was called
+
 ### 1.0.0 - 2025-09-22
 *   **Hand-Off to FAR Logger:** Added a method to (optionally) hand-off Discord notifications to FAR Logger's message queue
 

@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FARBuyableEvents", "miniMe", "1.0.0")]
+    [Info("FARBuyableEvents", "miniMe", "1.0.1")]
     [Description("Make Patrol Chopper and Launchsite Bradley buyable with configured item")]
     public class FARBuyableEvents : RustPlugin
     {
@@ -122,6 +122,7 @@ namespace Oxide.Plugins
                     if (TryConsumePayment(player))
                     {
                         player.ChatMessage(L("PatrolSpawnSuccess", player, cfg?.EventBuyableWith));
+                        Server.Broadcast($"{player.displayName} has paid for the Patrol Helicopter Event!");
                         // notify Discord if configured (filter checks exist in SendDiscordMessage, keep it stupid here)
                         var message = $":dagger: {GetDiscordTimestamp()} `{player.displayName}` has paid for `Patrol Chopper`";
                         SendDiscordMessage(cfg?.DiscordWebhook, message);
@@ -138,19 +139,23 @@ namespace Oxide.Plugins
 
             const string heliPrefab = "assets/prefabs/npc/patrol helicopter/patrolhelicopter.prefab";
 
-            // Random horizontal angle
-            float angle = UnityEngine.Random.Range(0f, 360f);
-            float distance = Mathf.Min(cfg.PatrolSpawnDistance, 1000f);
+            float angle = UnityEngine.Random.Range(0f, 360f); // Random horizontal angle
+            float distance = Mathf.Clamp(cfg.PatrolSpawnDistance, 100f, 1500f); // reasonable distance
             float height = Mathf.Clamp(cfg.PatrolSpawnHeight, 50f, 150f); // reasonable ceiling
 
             // Calculate spawn position
-            Vector3 offset = new Vector3(Mathf.Cos(angle * Mathf.Deg2Rad), 0f, Mathf.Sin(angle * Mathf.Deg2Rad)) * distance;
-            Vector3 spawnPos = player.transform.position + offset;
-            spawnPos.y += height;
+            Vector3 dir = new Vector3(Mathf.Cos(angle * Mathf.Deg2Rad), 0f, Mathf.Sin(angle * Mathf.Deg2Rad));
+            Vector3 spawnPos = player.transform.position + dir.normalized * distance;
 
-            // Raycast to ensure spawn is above ground
-            if (Physics.Raycast(spawnPos, Vector3.down, out RaycastHit hit, 1000f))
-                spawnPos.y = Mathf.Max(spawnPos.y, hit.point.y + 30f); // at least 30m above ground
+            // Raycast from high above the candidate position straight down to find terrain/water
+            float rayOriginHeight = 5000f;
+            Vector3 rayStart = new Vector3(spawnPos.x, rayOriginHeight, spawnPos.z);
+            if (Physics.Raycast(rayStart, Vector3.down, out RaycastHit hit, rayOriginHeight + 100f, LayerMask.GetMask("World")))
+                // place heli at configured height above ground
+                spawnPos.y = hit.point.y + height;
+            else
+                // fallback if no ground hit (e.g. on map edge) → relative to player
+                spawnPos.y = player.transform.position.y + height;
 
             BaseEntity heliEnt = GameManager.server.CreateEntity(heliPrefab, spawnPos, Quaternion.identity, true);
             if (heliEnt == null) return;
@@ -210,6 +215,7 @@ namespace Oxide.Plugins
                     if (TryConsumePayment(player))
                     {
                         player.ChatMessage(L("BradleySpawnSuccess", player, cfg?.EventBuyableWith));
+                        Server.Broadcast($"{player.displayName} has paid for the Launch Site Bradley Event!");
                         // notify Discord if configured (filter checks exist in SendDiscordMessage, keep it stupid here)
                         var message = $":dagger: {GetDiscordTimestamp()} `{player.displayName}` has paid for `Launch Site Bradley`";
                         SendDiscordMessage(cfg?.DiscordWebhook, message);
