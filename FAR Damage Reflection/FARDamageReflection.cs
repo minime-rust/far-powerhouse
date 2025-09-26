@@ -980,6 +980,7 @@ namespace Oxide.Plugins
         {
             "explosive.timed",   // covers "explosive.timed.deployed"
             "explosive.satchel", // covers "explosive.satchel.deployed"
+            "grenade.f",         // covers "grenade.flashbang" and "grenade.f1"
             "rocket_",           // covers "rocket_basic", "rocket_hv", "rocket_mlrs"
             "survey_charge"      // let's not forget the survey_charge explosives
         };
