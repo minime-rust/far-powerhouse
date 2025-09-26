@@ -1020,6 +1020,18 @@ namespace Oxide.Plugins
             if (!string.IsNullOrEmpty(ammoShort) && ExplIncAmmo.Contains(ammoShort))
                 return true;
 
+            // 2b. Special case: rockets (launcher doesn't expose ammo shortname)
+            if (info.ProjectilePrefab != null)
+            {
+                // Check the projectile's ItemDefinition via its prefab name
+                var projectileName = info.ProjectilePrefab.name;
+                var itemDef = ItemManager.FindItemDefinition(projectileName);
+                var rocketAmmoShort = itemDef?.shortname;
+
+                if (!string.IsNullOrEmpty(rocketAmmoShort) && ExplIncAmmo.Contains(rocketAmmoShort))
+                    return true;
+            }
+
             // 3. Weapon prefab
             var weaponPrefab = NormalizeShortName(info.WeaponPrefab?.ShortPrefabName);
             if (HasExplosiveHint(weaponPrefab))
