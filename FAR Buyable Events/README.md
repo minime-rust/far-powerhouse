@@ -6,6 +6,9 @@ The **FAR Buyable Events** plugin introduces a dynamic new layer of risk and rew
 ## Changelog
 
 ### 1.0.1 - 2025-09-25
+*   **Added heli loot protection:** Heli loot is now reserved for the player (and team) who dealt the most damage to chopper, then released to everyone
+
+### 1.0.1 - 2025-09-25
 *   **Corrected spawn distance:** Fixed a bug where the patrol helicopter would not spawn at the configured distance from the player
 *   **Added global chat warning:** Added a warning in global chat - so that everyone on the server knows when Bradley or a Chopper was called
 
@@ -74,6 +77,8 @@ FAR Buyable Events offers flexible configuration options to tailor the event buy
   "EventBuyableWith": "supply.signal",   // The item shortname (e.g., "supply.signal", "scrap") required to buy an event. Quantity is always 1.
   "PatrolSpawnDistance": 1000.0,         // The distance (in meters) from the player where the Patrol Helicopter will initially spawn.
   "PatrolSpawnHeight": 120.0,            // The height (in meters) above the terrain where the Patrol Helicopter will initially spawn.
+  "HeliCrateLockMinutes": 10,            // The amount of time the loot is reserved to the "winning" player and team, then released to everyone
+  "DataCleanupMinutes": 30,              // Clean up internal data after configured minutes to avoid unnecessary memory usage
   "ServerRestartsDaily": false,          // Set to true if your server restarts daily. This helps with wipe schedule calculations.
   "TimeZoneId": "Europe/London",         // Your server's time zone ID (e.g., "America/New_York", "Asia/Tokyo"). Used for accurate wipe calculations.
   "WipeDayOfWeek": 4,                    // The day of the week your server typically wipes (0=Sunday, 1=Monday... 6=Saturday).

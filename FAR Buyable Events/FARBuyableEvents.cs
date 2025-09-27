@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Oxide.Core;
+using Oxide.Core.Libraries.Covalence;
 using Oxide.Core.Plugins;
 using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FARBuyableEvents", "miniMe", "1.0.1")]
+    [Info("FAR Buyable Events", "miniMe", "1.1.0")]
     [Description("Make Patrol Chopper and Launchsite Bradley buyable with configured item")]
     public class FARBuyableEvents : RustPlugin
     {
@@ -21,6 +22,8 @@ namespace Oxide.Plugins
             public string EventBuyableWith = "supply.signal";
             public float PatrolSpawnDistance = 1000f;
             public float PatrolSpawnHeight = 120f;
+            public int HeliCrateLockMinutes = 10;
+            public int DataCleanupMinutes = 30;
             public string DiscordWebhook = string.Empty;
             public DayOfWeek WipeDayOfWeek = DayOfWeek.Thursday;
             public int WipeHourOfDay = 19;
@@ -29,6 +32,7 @@ namespace Oxide.Plugins
         }
         private ConfigData cfg;
 
+        Timer cleanupTimer;
         Timer endgameTimer;
         bool isEndgame = false;
 
@@ -58,6 +62,10 @@ namespace Oxide.Plugins
             lang.RegisterMessages(Messages, this);
             EvaluateEndgame();
 
+            // Clean Patrol Helicopter damage tracking every ... minutes
+            if (cfg != null && cfg.DataCleanupMinutes > 0)
+                cleanupTimer = timer.Every(cfg.DataCleanupMinutes * 60f, CleanupDictionaries);
+
             // Console summary
             Puts($"Config → AssumeDailyRestart: {cfg.ServerRestartsDaily}," +
                  $"\nBradleyBuyableDuringEndgame: {cfg.BradleyBuyableDuringEndGame}, " +
@@ -69,6 +77,9 @@ namespace Oxide.Plugins
 
         void Unload()
         {
+            cleanupTimer?.Destroy();
+            cleanupTimer = null;
+
             endgameTimer?.Destroy();
             endgameTimer = null;
         }
@@ -86,6 +97,9 @@ namespace Oxide.Plugins
             {"NoPatrolExists", "There is already a Patrol Chopper on the map. Try again later!"},
             {"PatrolSpawnFail", "Spawning Patrol Chopper failed; no payment was taken."},
             {"PatrolSpawnSuccess", "Patrol Chopper called to your position — 1 {0} consumed. Good luck!"},
+            {"HeliWinner", "{0} dealt the most damage to the Patrol Helicopter. Only {0} (and team) can loot the heli crates for the next {1} minutes."},
+            {"HeliUnlock", "{0} minutes passed, heli crates can now be looted by everyone."},
+            {"HeliNotYourCrate", "This crate is locked!"},
             {"BradleySpawnFail", "Spawning Bradley failed; no payment was taken."},
             {"BradleySpawnSuccess", "Launch Site Bradley called — 1 {0} consumed. Good luck!"},
             {"BradleyExists", "A Bradley already exists at this monument."},
@@ -347,6 +361,140 @@ namespace Oxide.Plugins
 
             var nextMonth = now.AddMonths(1);
             return NthWeekday(nextMonth.Year, nextMonth.Month, target, 1, hour);
+        }
+        #endregion
+
+        #region Tracking Heli Spawns & Damage
+        private readonly Dictionary<PatrolHelicopterAI, Dictionary<ulong, float>> heliDamage = new();
+        private readonly Dictionary<ulong, (LootContainer crate, ulong winner)> trackedCrates = new();
+
+        // Small queue of recently dead heli winners
+        private readonly Queue<ulong> recentDeadHeliWinners = new();
+        private const float RecentWinnerTTL = 2f; // seconds
+
+        // Loot prevention
+        object CanLootEntity(BasePlayer player, BaseEntity target)
+        {
+            if (player == null || target == null) return null;
+
+            if (target is LockedByEntCrate crate && crate.ShortPrefabName == "heli_crate")
+            {
+                if (!trackedCrates.TryGetValue(crate.net.ID.Value, out var tracked))
+                    return null; // not tracked → allow loot
+
+                var winnerId = tracked.winner;
+
+                if (player.userID == winnerId) return null; // winner himself
+
+                // Get winner team via Covalence
+                var winnerPlayer = BasePlayer.FindByID(winnerId);
+                if (winnerPlayer != null && winnerPlayer.currentTeam != 0)
+                    if (player.currentTeam == winnerPlayer.currentTeam) return null; // teammate
+
+                // Otherwise block loot
+                player.ChatMessage(L("HeliNotYourCrate"));
+                return false;
+            }
+
+            return null;
+        }
+
+        // Track damage
+        void OnEntityTakeDamage(BaseCombatEntity entity, HitInfo info)
+        {
+            if (info?.InitiatorPlayer == null || entity == null) return;
+
+            var heli = entity.GetComponent<PatrolHelicopterAI>();
+            if (heli == null) return;
+
+            var id = info.InitiatorPlayer.userID;
+
+            if (!heliDamage.TryGetValue(heli, out var dmgDict))
+                heliDamage[heli] = dmgDict = new Dictionary<ulong, float>();
+
+            dmgDict[id] = dmgDict.TryGetValue(id, out var dmg)
+                        ? dmg + info.damageTypes.Total()
+                        : info.damageTypes.Total();
+        }
+
+        // Handle heli death
+        void OnEntityDeath(BaseCombatEntity entity, HitInfo info)
+        {
+            var heli = entity.GetComponent<PatrolHelicopterAI>();
+            if (heli == null) return;
+
+            if (!heliDamage.TryGetValue(heli, out var dmgDict) || dmgDict.Count == 0) return;
+
+            var winner = dmgDict.OrderByDescending(kvp => kvp.Value).First().Key;
+            heliDamage.Remove(heli); // remove dead heli immediately
+
+            var winnerPlayer = BasePlayer.FindByID(winner);
+            var minutes = cfg.HeliCrateLockMinutes;
+
+            if (winnerPlayer != null)
+                Server.Broadcast(L("HeliWinner", null, winnerPlayer.displayName, minutes));
+
+            // Add winner to recent dead queue for crate assignment
+            recentDeadHeliWinners.Enqueue(winner);
+            timer.Once(RecentWinnerTTL, () =>
+            {
+                if (recentDeadHeliWinners.Count > 0 && recentDeadHeliWinners.Peek() == winner)
+                    recentDeadHeliWinners.Dequeue();
+            });
+
+            // Schedule crate unlock
+            timer.Once(minutes * 60f, () =>
+            {
+                var cratesToUnlock = trackedCrates
+                    .Where(kvp => kvp.Value.winner == winner && kvp.Value.crate != null && !kvp.Value.crate.IsDestroyed)
+                    .Select(kvp => kvp.Value.crate)
+                    .ToList();
+
+                // Remove tracked crates
+                foreach (var crate in cratesToUnlock)
+                    trackedCrates.Remove(crate.net.ID.Value);
+
+                // Only broadcast if there were any valid crates
+                if (cratesToUnlock.Count > 0)
+                    Server.Broadcast(L("HeliUnlock", null, minutes));
+            });
+        }
+
+        // Assign winner when crate spawns
+        void OnEntitySpawned(BaseNetworkable entity)
+        {
+            if (entity == null) return;
+
+            // Check for Patrol Helicopter
+            var heli = entity.GetComponent<PatrolHelicopterAI>();
+            if (heli != null)
+            {
+                heliDamage[heli] = new Dictionary<ulong, float>();
+                return;
+            }
+
+            // Check for heli crate
+            if (entity is LootContainer crate && crate.PrefabName == "assets/prefabs/npc/patrol helicopter/heli_crate.prefab")
+            {
+                // Assign the most recent dead heli winner
+                var winner = recentDeadHeliWinners.Count > 0 ? recentDeadHeliWinners.Peek() : 0UL;
+
+                // Track the crate with its winner
+                trackedCrates[crate.net.ID.Value] = (crate, winner);
+            }
+        }
+
+
+        // Cleanup destroyed crates
+        private void CleanupDictionaries()
+        {
+            var goneCrates = trackedCrates
+                .Where(kvp => kvp.Value.crate == null || kvp.Value.crate.IsDestroyed)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            foreach (var id in goneCrates)
+                trackedCrates.Remove(id);
         }
         #endregion
 
