@@ -5,7 +5,7 @@ The **FAR Buyable Events** plugin introduces a dynamic new layer of risk and rew
 
 ## Changelog
 
-### 1.0.1 - 2025-09-25
+### 1.1.0 - 2025-09-27
 *   **Added heli loot protection:** Heli loot is now reserved for the player (and team) who dealt the most damage to chopper, then released to everyone
 
 ### 1.0.1 - 2025-09-25
