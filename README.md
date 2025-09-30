@@ -62,11 +62,17 @@ Transparency is important to us. It's crucial to mention that most of the plugin
 
 Every line of code, regardless of its origin, is thoroughly reviewed, understood, and tested by us. We stand behind the quality and safety of every single plugin published here. Our goal is to use the best available tools to deliver high-quality, stable, and secure plugins for the community.
 
-## ❤️ Motivation & Donations
+## ❤️ Our Philosophy & Community Engagement
 
-Our primary motivation for creating and sharing these plugins stems from a genuine love for the game Rust and the enjoyment we get from running our own servers and solving challenges. This is a passion project, and all plugins are provided completely free of charge to the community.
+Our primary motivation for creating and sharing these plugins is a genuine love for the game Rust and the satisfaction we derive from running our own servers and solving unique challenges. This is, first and foremost, a **passion project**, and all plugins are provided **completely free of charge** to the community.
 
-While we don't actively solicit payments and believe that receiving donations might come with a level of expectation we're not set up to fulfill as hobbyists, we understand that some community members may wish to show their appreciation. If you genuinely feel our work has enhanced your server or gameplay experience and you wish to support our efforts, you may consider a donation. We see this not as payment for services, but as a kind gesture that could strengthen the bond within our server community. However, please remember that any contributions are entirely voluntary and do not obligate us to provide dedicated support or prioritize specific features.
+We strongly believe in the spirit of open-source and giving back to the community. As such, we **do not accept monetary donations** for any of our work. Our goal is to foster a vibrant ecosystem where valuable tools are freely accessible, enabling everyone to enhance their Rust server experience without financial barriers.
+
+If you appreciate our efforts and wish to show your support, we would be grateful for your involvement in other meaningful ways:
+
+*   **Spread the Word:** Tell other server owners and players about the FAR Powerhouse and how our plugins have enhanced your experience. Visibility helps our community grow!
+*   **Contribute & Collaborate:** Whether it's through bug reports, feature suggestions via [issues](https://github.com/minime-rust/far-powerhouse/issues), or even by submitting code via [pull requests](https://github.com/minime-rust/far-powerhouse/pulls), your active participation is the most valuable form of appreciation. Join us in making FAR even better!
+*   **Engage in Discussion:** Join our [Discord](https://discord.gg/ZTSQ43gcGV) server to share ideas, offer assistance to others, and be a part of the FAR community.
 
 ## 📜 License
 
