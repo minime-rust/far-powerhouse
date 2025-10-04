@@ -6,7 +6,6 @@ This plugin is a derivative work of "[No Green](https://umod.org/plugins/no-gree
 
 All credit goes to `Iv Misticos` for creating the foundation. This version improves upon the original by fixing RCON logging behavior and reducing unnecessary console spam while maintaining the core stealth admin functionality.
 
----
 
 ## 📖 Description
 
@@ -14,26 +13,22 @@ All credit goes to `Iv Misticos` for creating the foundation. This version impro
 
 All admin powers remain fully functional - this plugin **only** changes the visual appearance of admin names in chat messages.
 
----
 
 ## 🤔 Why "FAR: Admin Blue"?
 
 While the original "No Green" plugin worked well, it had a few issues that needed addressing:
 
 ### **Problems with the Original:**
-1. **Duplicate RCON Logging** - Messages were logged twice to RCON (once by the plugin, once by Rust's native system)
-2. **Excessive Console Spam** - Redundant `[CHAT]` and `[TEAM CHAT]` logs cluttered the server console
-3. **Code Inefficiency** - Contained unnecessary server console logging that duplicated vanilla behavior
+1. **Excessive Console Spam** - Redundant `[CHAT]` and `[TEAM CHAT]` logs cluttered the server console
+2. **Code Inefficiency** - Contained unnecessary server console logging that duplicated vanilla behavior
 
 ### **Improvements in FAR: Admin Blue:**
 ✅ **Clean RCON Logging** - Messages appear once in RCON, exactly as intended  
 ✅ **Reduced Console Spam** - Removed redundant logging while preserving vanilla behavior  
-✅ **Leaner Codebase** - Simplified logic with better maintainability  
 ✅ **Same Functionality** - All stealth features work identically to the original  
 
 **The result:** A plugin that does the same job with less overhead and better integration with Rust's native systems.
 
----
 
 ## ✨ Features
 
@@ -47,7 +42,6 @@ While the original "No Green" plugin worked well, it had a few issues that neede
 - ⚡ **Lightweight** - Minimal performance impact (~80 lines of code)
 - 🔌 **Framework Agnostic** - Works with both Oxide/uMod and Carbon
 
----
 
 ## 📦 Installation
 
@@ -59,7 +53,6 @@ While the original "No Green" plugin worked well, it had a few issues that neede
 - Rust server with Oxide/uMod or Carbon
 - No dependencies on other plugins
 
----
 
 ## ⚙️ Configuration
 
@@ -72,7 +65,6 @@ While the original "No Green" plugin worked well, it had a few issues that neede
 
 The blue color is hardcoded to match vanilla Rust's player name color for consistency.
 
----
 
 ## 🎮 Commands
 
@@ -80,13 +72,12 @@ The blue color is hardcoded to match vanilla Rust's player name color for consis
 
 It works automatically and silently in the background. Simply install it and your admin chat messages will appear with blue names instead of green.
 
----
 
 ## 🔍 How It Works
 
 The plugin intercepts admin chat messages via the `OnPlayerChat` hook, then:
 
-1. Detects if the sender has admin privileges (`authLevel > 0`)
+1. Checks for message coming from players with auth level > 0
 2. Recreates the chat message with blue color instead of green
 3. Sends it through the appropriate channel (global/team/local)
 4. Logs to RCON exactly once (no duplicates)
@@ -94,7 +85,6 @@ The plugin intercepts admin chat messages via the `OnPlayerChat` hook, then:
 
 **All chat channels are handled correctly**, including proximity-based fading for local chat.
 
----
 
 ## 🛠️ For Developers
 
@@ -110,15 +100,16 @@ The codebase demonstrates:
 - Multi-channel chat handling
 - Team and proximity-based messaging
 
----
 
 ## 🐛 Issues & Support
 
 Found a bug or have a suggestion? Please open an issue on GitHub!
 
----
 
 ## 📜 Changelog
+
+### v1.0.1 (2025-10-04)
+- Code refactor and clean up
 
 ### v1.0.0 (Initial Release)
 - Forked from "No Green" by `Iv Misticos`
