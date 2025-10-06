@@ -29,6 +29,9 @@ This is our most complex and ambitious plugin to date, representing a significan
 
 ## Changelog
 
+### 1.1.6 - 2025-10-06
+*   **Fixed Auto Ban:** Fixed a small issue where a configured Auto-Ban for raiding wouldn't be applied.
+
 ### 1.1.5 - 2025-09-25
 *   **Refined rocket detection:** Refined the way rocket fire is detected. Should now reliably detect rockets shot at another player's base.
 

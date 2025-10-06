@@ -15,7 +15,7 @@ using UnityEngine;                      // BasePlayer, GameObject, etc.
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Damage Reflection", "miniMe", "1.1.5")]
+    [Info("FAR: Damage Reflection", "miniMe", "1.1.6")]
     [Description("Based on Chernarust's 'ReflectDamage' plugin. Reflects configurable portions of damage back to players, amplifies headshot damage, and optionally applies a bleeding effect to the attacker. Improves basic TC security. Requires specific permission for bypass.")]
 
     public class FARDamageReflection : RustPlugin
@@ -366,6 +366,8 @@ namespace Oxide.Plugins
             forgivableStrikesDecay = enableForgiveness ? _config.General.forgivableStrikesDecay : 0u;
             enableAutoKick = enableForgiveness && _config.General.enableAutoKick;
             isHeadShotForgivable = enableForgiveness && _config.PvP.isHeadShotForgivable;
+            raidTempBanHours = _config.Entity.raidTempBanHours;                     // uint: already non-negative
+            enableAutoBan = raidTempBanHours > 0;                                   // true if any temp-ban hours configured
             // 10) warnings to attacker and victim
             warnVictimWhileForgivable = enableForgiveness && _config.PvP.warnVictimWhileForgivable;
             warnAttackerWhileForgivable = enableForgiveness && _config.PvP.warnAttackerWhileForgivable;
