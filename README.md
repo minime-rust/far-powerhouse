@@ -15,6 +15,7 @@ This repository hosts a growing collection of plugins. Each plugin resides in it
 We encourage you to explore the individual plugin folders for more information:
 
 *   **[FAR Admin Blue](FAR%20Admin%20Blue/)** - Improved and refined version of the original No Green plugin by Iv Misticos.
+*   **[FAR Auto Sort](FAR%20Auto%20Sort/)** - Little helper to sort your storages (bind chat command to a key!).
 *   **[FAR Box Looters](FAR%20Box%20Looters/)** - Rewrite of the fantastic Box Looters plugin, now on steroids.
 *   **[FAR Buyable Events](FAR%20Buyable%20Events/)** - Allow players to call the Patrol Chopper or Launch Site Bradley.
 *   **[FAR Damage Reflection](FAR%20Damage%20Reflection/)** - Manage PVP and Raid damage - essential life saver for PVE servers.
