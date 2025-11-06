@@ -7,6 +7,9 @@ The **FAR Vehicle Locks** plugin offers a robust, configurable, and significantl
 
 ## Changelog
 
+### 1.0.7 - 2025-11-06
+*   **Fix for 6-Nov Force Wipe:** Fixed compile error
+
 ### 1.0.6 - 2025-09-22
 *   **Hand-Off to FAR Logger:** Added a method to (optionally) hand-off Discord notifications to FAR Logger's message queue
 

@@ -29,6 +29,9 @@ This is our most complex and ambitious plugin to date, representing a significan
 
 ## Changelog
 
+### 1.1.7 - 2025-11-06
+*   **Fix for 6-Nov Force Wipe:** Fixed compile error.
+
 ### 1.1.6 - 2025-10-06
 *   **Fixed Auto Ban:** Fixed a small issue where a configured Auto-Ban for raiding wouldn't be applied.
 
