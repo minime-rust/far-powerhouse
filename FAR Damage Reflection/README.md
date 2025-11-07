@@ -29,6 +29,9 @@ This is our most complex and ambitious plugin to date, representing a significan
 
 ## Changelog
 
+### 1.1.8 - 2025-11-07
+*   **Refined Fix for 6-Nov Force Wipe:** The previous fix went a bit overboard.
+
 ### 1.1.7 - 2025-11-06
 *   **Fix for 6-Nov Force Wipe:** Fixed compile error.
 

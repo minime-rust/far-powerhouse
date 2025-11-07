@@ -1,8 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;             // for CultureInfo.InvariantCulture
-using System.Reflection;
 using System.Runtime.CompilerServices;  // "aggressive inlining"
 using System.Text;                      // stringbuilder
 using Facepunch;                        // sometimes needed for Unity-style objects
@@ -17,7 +15,7 @@ using UnityEngine;                      // BasePlayer, GameObject, etc.
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Damage Reflection", "miniMe", "1.1.7")]
+    [Info("FAR: Damage Reflection", "miniMe", "1.1.8")]
     [Description("Based on Chernarust's 'ReflectDamage' plugin. Reflects configurable portions of damage back to players, amplifies headshot damage, and optionally applies a bleeding effect to the attacker. Improves basic TC security. Requires specific permission for bypass.")]
 
     public class FARDamageReflection : RustPlugin
@@ -389,7 +387,9 @@ namespace Oxide.Plugins
             if (info?.WeaponPrefab != null)
             {
                 var w = info.WeaponPrefab.ShortPrefabName;
-                if (w == "waterpistol.entity" || w == "watergun.entity" || w == "catapult.entity")
+                if (w == "catapult.entity" ||
+                    w == "watergun.entity" ||
+                    w == "waterpistol.entity")
                     return; // ignore
             }
 
@@ -619,51 +619,19 @@ namespace Oxide.Plugins
             return !HasAuth(tc, attackerId);
         }
 
-        // Helper that works across Rust versions (uses native method if present, otherwise scans the set/list)
+        // Helper that works across Rust versions (uses native method if present, otherwise scans the list)
         private static bool HasAuth(BuildingPrivlidge tc, ulong userId)
         {
-            if (tc == null) return false;
+            // Preferred fast path
+            try { if (tc.IsAuthed(userId)) return true; }
+            catch { /* not found — fall back below */ }
 
-            // Preferred fast path — use the engine helper if present
-            try { return tc.IsAuthed(userId); }
-            catch { /* fall through for older builds */ }
+            // Fallback: scan authorizedPlayers (PlayerNameID entries)
+            var list = tc.authorizedPlayers;
+            if (list == null) return false;
 
-            var apObj = (object)tc.authorizedPlayers;
-            if (apObj == null) return false;
-
-            // Common modern shapes
-            if (apObj is HashSet<ulong> hs)
-                return hs.Contains(userId);
-
-            if (apObj is List<ulong> ul)
-                return ul.Contains(userId);
-
-            if (apObj is IEnumerable<ulong> eul)
-            {
-                foreach (var id in eul)
-                    if (id == userId) return true;
-                return false;
-            }
-
-            // Legacy/unknown shape: scan and try to read a 'userid' ulong via reflection
-            foreach (var e in (IEnumerable)apObj)
-            {
-                if (e == null) continue;
-                var t = e.GetType();
-
-                var fld = t.GetField("userid", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (fld != null && fld.FieldType == typeof(ulong))
-                {
-                    if ((ulong)fld.GetValue(e) == userId) return true;
-                    continue;
-                }
-
-                var prop = t.GetProperty("userid", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                if (prop != null && prop.PropertyType == typeof(ulong))
-                {
-                    if ((ulong)prop.GetValue(e, null) == userId) return true;
-                }
-            }
+            foreach (var entry in list)
+            { if (entry == userId) return true; }
 
             return false;
         }

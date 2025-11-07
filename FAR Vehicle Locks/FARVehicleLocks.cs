@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Vehicle Locks", "miniMe", "1.0.7")]
+    [Info("FAR: Vehicle Locks", "miniMe", "1.0.8")]
     [Description("OwnerID-driven vehicle access control, decay, and hints without physical locks.")]
     public class FARVehicleLocks : RustPlugin
     {
@@ -270,27 +270,18 @@ namespace Oxide.Plugins
 
         private bool IsWithinOwnersTC(BaseEntity vehicle, ulong ownerId)
         {
-            if (ownerId == 0 || vehicle == null) return false;
-
+            if (ownerId == 0) return false;
             var pos = vehicle.transform.position;
             var privs = Facepunch.Pool.GetList<BuildingPrivlidge>();
-            var radius = Mathf.Clamp(_config.TCRadiusMeters, 1f, 100f);
-
-            try
+            var radius = Mathf.Clamp(_config.TCRadiusMeters, 1f, 100f); // to prevent a “cover the map” situation
+            Vis.Entities(pos, radius, privs, Rust.Layers.Mask.Default | Rust.Layers.Mask.Deployed, QueryTriggerInteraction.Ignore);
+            foreach (var tc in privs)
             {
-                Vis.Entities(pos, radius, privs, Rust.Layers.Mask.Default | Rust.Layers.Mask.Deployed, QueryTriggerInteraction.Ignore);
-                foreach (var tc in privs)
-                {
-                    if (tc == null || tc.IsDestroyed) continue;
-                    if (tc.IsAuthed(ownerId))
-                        return true;
-                }
-                return false;
+                if (!tc.IsDestroyed && tc.authorizedPlayers != null && tc.authorizedPlayers.Any(a => a == ownerId))
+                { Facepunch.Pool.FreeList(ref privs); return true; }
             }
-            finally
-            {
-                Facepunch.Pool.FreeList(ref privs);
-            }
+            Facepunch.Pool.FreeList(ref privs);
+            return false;
         }
 
         private VehicleState EnsureDataForOwned(BaseEntity vehicle, string typeKey)

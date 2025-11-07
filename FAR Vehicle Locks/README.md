@@ -7,6 +7,9 @@ The **FAR Vehicle Locks** plugin offers a robust, configurable, and significantl
 
 ## Changelog
 
+### 1.0.8 - 2025-11-07
+*   **Refined fix for 6-Nov Force Wipe:** The 1.0.7 "fix" actually broke TC auth recognition! Working now!
+
 ### 1.0.7 - 2025-11-06
 *   **Fix for 6-Nov Force Wipe:** Fixed compile error
 
