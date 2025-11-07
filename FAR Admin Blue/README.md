@@ -1,5 +1,9 @@
 # FAR: Admin Blue
 
+## Note to Carbon users
+Since the 6-November-2025 update Carbon now has the `c.noadminchatcolor` convar, which is set to `-1` by default. If set to `1` Carbon will take care of admin chat colors being the same as for players.  
+**If you're a Carbon user, you don't need "FAR: Admin Blue" anymore!**
+
 ## 📋 Licensing & Credits
 
 This plugin is a derivative work of "[No Green](https://umod.org/plugins/no-green)" by `Iv Misticos`. The original license is provided in `ORIGINAL-LICENSE.txt`, and further attribution details can be found in `NOTICE.FARAdminBlue.md`. This derivative work is also licensed under the MIT License.
