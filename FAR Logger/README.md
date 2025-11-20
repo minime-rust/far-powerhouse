@@ -57,6 +57,9 @@ if (farLoggerPlugin != null)
 
 ## Changelog
 
+### 1.3.0 - 2025-11-20
+*   **Improved rustmaps.com integration:** Delayed Discord notification on map change to allow map generation to finish and ensure Discord has a proper embed / map preview
+
 ### 1.2.6 - 2025-09-22
 *   **Message Injection:** Added a method to (optionally) handle Discord notifications from other plugins in the FAR framework
 

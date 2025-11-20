@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Logger", "miniMe", "1.2.6")]
+    [Info("FAR: Logger", "miniMe", "1.3.0")]
     [Description("A flexible, Discord-integrated event logger for admins")]
 
     public class FARLogger : CovalencePlugin
@@ -569,6 +569,7 @@ namespace Oxide.Plugins
 
         private void CheckWipeOnStartup()
         {
+            int worldSize = ConVar.Server.worldsize;
             var mapSeed = unchecked((uint)ConVar.Server.seed);
             if (GetWipeSeed() == 0u)        // No need to check for wipe on first run
             {
@@ -582,14 +583,6 @@ namespace Oxide.Plugins
             // Seed changed -> treat as wipe
             SetWipeSeed(mapSeed);
 
-            int worldSize = ConVar.Server.worldsize;
-            var newMapUrl = $"https://rustmaps.com/map/{worldSize}_{mapSeed}";
-            var message = Lang("ServerWipeDetectedDiscord", null, newMapUrl);
-            var webhookURL = config?.Webhooks?.WipeWebhook ?? string.Empty;
-
-            if (config?.ServerWipes?.DiscordNotify ?? false)
-                SendDiscordMessage(webhookURL, message);
-
             var rustMapsApiKey = config?.ServerWipes?.RustMapsApiKey ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(rustMapsApiKey))
                 RequestRustMapGeneration(rustMapsApiKey, worldSize, mapSeed);
@@ -597,21 +590,52 @@ namespace Oxide.Plugins
 
         private void RequestRustMapGeneration(string apiKey, int worldSize, uint mapSeed)
         {
-            const string url = "https://api.rustmaps.com/v4/maps";
-            var payload = $"{{\"size\":{worldSize},\"seed\":{mapSeed},\"staging\":false}}";
 
-            var headers = new Dictionary<string, string>
+            var jobKey = $"{worldSize}_{mapSeed}";
+            const int PollIntervalSeconds = 600; // 10 min
+            const int MaxElapsedSeconds = 3600;  // 1 hour
+            var mapUrl = $"https://rustmaps.com/map/{jobKey}";
+            var message = Lang("ServerWipeDetectedDiscord", null, mapUrl);
+            var webhookURL = config?.Webhooks?.WipeWebhook ?? string.Empty;
+
+            void PollForReadyMap(int elapsed)
+            {
+                string genUrl = $"https://api.rustmaps.com/v4/maps/{worldSize}/{mapSeed}";
+                var headers = new Dictionary<string, string>
+                {
+                    ["accept"] = "application/json",
+                    ["X-API-Key"] = apiKey
+                };
+                webrequest.Enqueue(genUrl, null, (code, response) =>
+                {
+                    if (code == 200 || elapsed >= MaxElapsedSeconds)
+                    {
+                        // Map is ready! Notify Discord.
+                        if (config?.ServerWipes?.DiscordNotify ?? false)
+                            SendDiscordMessage(webhookURL, message);
+                        return;
+                    }
+
+                    // Otherwise, wait and retry.
+                    timer.Once(PollIntervalSeconds, () => PollForReadyMap(elapsed + PollIntervalSeconds));
+                }, this, Oxide.Core.Libraries.RequestMethod.GET, headers);
+            }
+
+            // Always start polling (even if POST returns 409)
+            string reqUrl = "https://api.rustmaps.com/v4/maps";
+            string reqPayload = $"{{\"size\":{worldSize},\"seed\":{mapSeed},\"staging\":false}}";
+            var reqHeaders = new Dictionary<string, string>
             {
                 ["Content-Type"] = "application/json",
                 ["accept"] = "application/json",
                 ["X-API-Key"] = apiKey
             };
 
-            webrequest.Enqueue(url, payload, (code, response) =>
+            webrequest.Enqueue(reqUrl, reqPayload, (code, response) =>
             {
-                if (code != 200 && code != 201)
-                    Puts($"[RustMaps] Generation request failed (code {code}): {response}");
-            }, this, Oxide.Core.Libraries.RequestMethod.POST, headers);
+                // Log only for debugging, not notification. Start polling regardless of code.
+                PollForReadyMap(0);
+            }, this, Oxide.Core.Libraries.RequestMethod.POST, reqHeaders);
         }
 
         [ChatCommand("wipe")]
