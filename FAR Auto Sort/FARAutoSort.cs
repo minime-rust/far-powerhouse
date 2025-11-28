@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Auto Sort", "miniMe", "1.0.0")]
+    [Info("FAR: Auto Sort", "miniMe", "1.0.1")]
     [Description("Player-initiated sorting of StorageContainers.")]
     public class FARAutoSort : CovalencePlugin
     {
@@ -82,7 +82,7 @@ namespace Oxide.Plugins
             var items = container.inventory.itemList;
             if (items == null || items.Count <= 1) return;
 
-            // Make a copy to sort
+            // Make a copy to sort (snapshot Original-Items)
             var sortedItems = new List<Item>(items);
             sortedItems.Sort((a, b) =>
             {
@@ -112,18 +112,16 @@ namespace Oxide.Plugins
                 return a.uid.Value.CompareTo(b.uid.Value);
             });
 
-            // Clear container and add items back in sorted order
-            container.inventory.Clear();
+            // 1. REMOVE Original-Items from the Container, don't clear()!
+            var itemsToRemove = new List<Item>(container.inventory.itemList);
+            foreach (var item in itemsToRemove)
+                item.RemoveFromContainer();
+
+            // 2. Move back Original-Items in sorted sequence into the container keeping add-ons!
             foreach (var item in sortedItems)
             {
-                // Create a new item with the same info, amount and skin
-                Item newItem = ItemManager.CreateByItemID(item.info.itemid, item.amount, item.skin);
-                if (newItem != null)
-                {
-                    newItem.condition = item.condition;
-                    // Move it into the container inventory
-                    newItem.MoveToContainer(container.inventory);
-                }
+                if (item == null) continue;
+                item.MoveToContainer(container.inventory);
             }
         }
 

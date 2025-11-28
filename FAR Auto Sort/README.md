@@ -23,3 +23,8 @@ Prefer another key? Use any key you like: `bind <yourKey> chat.say "/sort <mode>
 
 ## Configuration
 No configuration required
+
+## Changelog
+
+### 1.0.1 - 2025-11-28
+*   **Bugfix:** Fixed a bug where sorting a box with guns would disappear any equipped attachments.
