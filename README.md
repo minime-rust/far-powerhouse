@@ -17,6 +17,7 @@ We encourage you to explore the individual plugin folders for more information:
 *   **[FAR Admin Blue](FAR%20Admin%20Blue/)** - Improved and refined version of the original No Green plugin by Iv Misticos.
 *   **[FAR Auto Sort](FAR%20Auto%20Sort/)** - Little helper to sort your storages (bind chat command to a key!).
 *   **[FAR Box Looters](FAR%20Box%20Looters/)** - Rewrite of the fantastic Box Looters plugin, now on steroids.
+*   **[FAR Blueprint Bumper](FAR%20Blueprint%20Bumper/)** - Essential helper to bump your blueprints to the next version number.
 *   **[FAR Buyable Events](FAR%20Buyable%20Events/)** - Allow players to call the Patrol Chopper or Launch Site Bradley.
 *   **[FAR Damage Reflection](FAR%20Damage%20Reflection/)** - Manage PVP and Raid damage - essential life saver for PVE servers.
 *   **[FAR Logger](FAR%20Logger/)** - Meant to extend Discord Logger, but grew into it's own kind of thing.
