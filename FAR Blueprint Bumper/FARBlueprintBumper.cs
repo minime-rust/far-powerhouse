@@ -19,7 +19,7 @@ namespace Oxide.Plugins
         private void ConsoleCmdBlueprintBump(ConsoleSystem.Arg arg)
         {
             // 1. Determine the path to the server root directory (e.g., server/rust/)
-            string serverStoragePath = BasePlayer.storageDirectory;
+            string serverStoragePath = ConVar.Server.rootFolder;
 
             // 2. Find the current blueprint version number
             int currentVersion = FindCurrentBlueprintVersion(serverStoragePath);
@@ -37,11 +37,14 @@ namespace Oxide.Plugins
             string oldDbFileName = $"{BlueprintsBaseName}.{currentVersion}{DbExtension}";
             string newDbFileName = $"{BlueprintsBaseName}.{newVersion}{DbExtension}";
 
+            string oldWalFileName = $"{BlueprintsBaseName}.{currentVersion}{WalExtension}";
+            string newWalFileName = $"{BlueprintsBaseName}.{newVersion}{WalExtension}";
+
             string oldDbPath = Path.Combine(serverStoragePath, oldDbFileName);
-            string oldWalPath = Path.Combine(serverStoragePath, $"{BlueprintsBaseName}.{currentVersion}{WalExtension}");
+            string oldWalPath = Path.Combine(serverStoragePath, oldWalFileName);
 
             string newDbPath = Path.Combine(serverStoragePath, newDbFileName);
-            string newWalPath = Path.Combine(serverStoragePath, $"{BlueprintsBaseName}.{newVersion}{WalExtension}");
+            string newWalPath = Path.Combine(serverStoragePath, newWalFileName);
 
             try
             {
@@ -53,11 +56,11 @@ namespace Oxide.Plugins
                 File.Copy(oldWalPath, newWalPath, true);
 
                 // 6. Confirmation output
-                Puts($"Successfully bumped \"{oldDbFileName}\" and \"{oldDbFileName}{WalExtension}\" to the new version \"{newDbFileName}\" and \"{newDbFileName}{WalExtension}\".");
+                Puts($"Successfully bumped \"{oldDbFileName}\" and \"{oldWalFileName}\" to the new version \"{newDbFileName}\" and \"{newWalFileName}\".");
             }
             catch (FileNotFoundException)
             {
-                Puts($"Error: One of the source files was not found. Please ensure both \"{oldDbFileName}\" and \"{oldDbFileName}{WalExtension}\" exist in '{serverStoragePath}'. Aborting copy.");
+                Puts($"Error: One of the source files was not found. Please ensure both \"{oldDbFileName}\" and \"{oldWalFileName}\" exist in '{serverStoragePath}'. Aborting copy.");
             }
             catch (Exception ex)
             {
