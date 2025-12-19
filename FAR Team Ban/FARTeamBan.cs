@@ -14,8 +14,9 @@ namespace Oxide.Plugins
         private const int ConfirmationTimeoutMinutes = 5;
         private const string DefaultReason = "No Reason";
         private const bool debug = false; // set true to bypass functions when testing
-
         private Dictionary<string, PendingAction> pendingActions = new Dictionary<string, PendingAction>();
+
+        private string outputBuffer;
 
         private class PendingAction
         {
@@ -50,6 +51,8 @@ namespace Oxide.Plugins
 
         private void HandleTeamCommand(ConsoleSystem.Arg arg, string baseCommand)
         {
+            outputBuffer = string.Empty;    // initialize output buffer
+
             // 0. Authorization gate
             BasePlayer issuer = arg.Connection?.player as BasePlayer;
 
@@ -80,7 +83,9 @@ namespace Oxide.Plugins
                         break;
                 }
 
-                arg.ReplyWith($"Error: Missing required argument <SteamID>. Usage: {usage}");
+                outputBuffer = $"Error: Missing required argument <SteamID>. Usage: {usage}";
+                if (arg.Connection == null) Puts(outputBuffer);
+                else arg.ReplyWith(outputBuffer);
                 return;
             }
 
@@ -100,12 +105,17 @@ namespace Oxide.Plugins
 
             if (teamIDs == null || teamIDs.Count == 0)
             {
-                arg.ReplyWith($"Error: Could not resolve target player '{targetInput}' or the associated team.");
+                outputBuffer = $"Error: Could not resolve target player '{targetInput}' or the associated team.";
+                if (arg.Connection == null) Puts(outputBuffer);
+                else arg.ReplyWith(outputBuffer);
                 return;
             }
 
             // 3. Check confirmation
             CheckAndConfirmAction(arg, baseCommand, reason, hours, teamIDs);
+
+            // 4. We made it this far ... output the buffer to the user
+            SendOutput(arg);
         }
 
         private void CheckAndConfirmAction(ConsoleSystem.Arg arg, string baseCommand, string reason, float hours, List<ulong> teamIDs)
@@ -123,27 +133,27 @@ namespace Oxide.Plugins
                 if ((DateTime.UtcNow - action.Timestamp).TotalMinutes <= ConfirmationTimeoutMinutes)
                 {
                     // Valid confirmation. Go for it!
-                    ExecuteAction(arg, action);
+                    ExecuteAction(action);
                     pendingActions.Remove(commandKey);
-                    arg.ReplyWith($"Success: The command '{action.CommandKey}' has been executed.");
+                    outputBuffer += $"Success: The command '{action.CommandKey}' has been executed.\n";
                 }
                 else
                 {
                     // Timeout! Needs another confirmation.
                     pendingActions.Remove(commandKey);
-                    arg.ReplyWith($"Warning: The command '{action.CommandKey}' has timed out! Please repeat!");
-                    StartNewAction(arg, commandKey, teamIDs, baseCommand, reason, hours);
+                    outputBuffer += $"Warning: The command '{action.CommandKey}' has timed out! Please repeat!\n";
+                    StartNewAction(commandKey, teamIDs, baseCommand, reason, hours);
                 }
             }
             else
             {
                 // PRE-CONFIRMATION STEP
                 // Starts new action, ignores older or similar commands (if commandKey changed)
-                StartNewAction(arg, commandKey, teamIDs, baseCommand, reason, hours);
+                StartNewAction(commandKey, teamIDs, baseCommand, reason, hours);
             }
         }
 
-        private void StartNewAction(ConsoleSystem.Arg arg, string commandKey, List<ulong> teamIDs, string baseCommand, string reason, float hours)
+        private void StartNewAction(string commandKey, List<ulong> teamIDs, string baseCommand, string reason, float hours)
         {
             pendingActions[commandKey] = new PendingAction
             {
@@ -155,7 +165,7 @@ namespace Oxide.Plugins
                 Timestamp = DateTime.UtcNow
             };
 
-            // 1. List all team members (Name and ID)
+            // List all team members (Name and ID)
             List<string> memberDetails = new List<string>();
             foreach (ulong steamId in teamIDs)
             {
@@ -164,30 +174,10 @@ namespace Oxide.Plugins
                 memberDetails.Add($"Player **{playerName}** [{steamId}]");
             }
 
-            // 2. Summary and formatting
-            string actionVerb = GetActionVerb(baseCommand, teamIDs.Count);
-            string teamDesignation = teamIDs.Count > 1 ? $"team of {teamIDs.Count}" : "solo player";
-            string reasonPart = baseCommand == "teamban" && hours > 0 ? $" for {hours} hours (Reason: '{reason}')" : $" (Reason: '{reason}')";
-            if (baseCommand == "teamwipe") reasonPart = "";
-
-            // 3. Ensure consistant and meaningful output
-            string line1 =
-                $"WARNING: Pre-confirmation started for command '{commandKey}' " + $"targeting {teamIDs.Count} player(s).";
-            string line2 =
-                $"Affected Members: {string.Join(", ", memberDetails)}";
-            string line3 =
-                $"TO EXECUTE: Repeat the exact command '{commandKey}' within " + $"{ConfirmationTimeoutMinutes} minutes.";
-
-            arg.ReplyWith(line1);   // output on the originating channel (server console / RCon *OR* F1 console)
-            arg.ReplyWith(line2);
-            arg.ReplyWith(line3);
-
-            if (!arg.IsRcon)        // make sure *this* is visible in the server log
-            {
-                Puts(line1);
-                Puts(line2);
-                Puts(line3);
-            }
+            // Ensure consistant and meaningful output
+            outputBuffer += $"WARNING: Pre-confirmation started for command '{commandKey}' " + $"targeting {teamIDs.Count} player(s).\n";
+            outputBuffer += $"Affected Members: {string.Join(", ", memberDetails)}\n";
+            outputBuffer += $"TO EXECUTE: Repeat the exact command '{commandKey}' within " + $"{ConfirmationTimeoutMinutes} minutes.\n";
         }
 
         private List<ulong> GetTeamMemberSteamIDs(string input, out ulong targetSteamId)
@@ -215,9 +205,9 @@ namespace Oxide.Plugins
             return player?.displayName ?? iPlayer?.Name ?? steamId.ToString();
         }
 
-        private void ExecuteAction(ConsoleSystem.Arg arg, PendingAction action)
+        private void ExecuteAction(PendingAction action)
         {
-            arg.ReplyWith($"Executing action '{action.BaseCommand}' on {action.TargetSteamIDs.Count} player(s)...");
+            outputBuffer += $"Executing action '{action.BaseCommand}' on {action.TargetSteamIDs.Count} player(s)...\n";
 
             foreach (ulong steamId in action.TargetSteamIDs)
             {
@@ -232,12 +222,12 @@ namespace Oxide.Plugins
                         int hoursInt = (int)action.Hours;
                         if (debug)
                         {
-                            arg.ReplyWith($"[DEBUG] -> BAN: Player \"{playerName}\" [{steamId}] for {action.Hours}h.");
+                            outputBuffer += $"[DEBUG] -> BAN: Player \"{playerName}\" [{steamId}] for {action.Hours}h.\n";
                         }
                         else
                         {
                             ConsoleSystem.Run(ConsoleSystem.Option.Server, $"banid {steamId} \"{playerName}\" \"{action.Reason}\" {hoursInt}");
-                            arg.ReplyWith($"-> BAN: Player {playerName} [{steamId}] for {action.Hours}h.");
+                            outputBuffer += $"-> BAN: Player {playerName} [{steamId}] for {action.Hours}h.\n";
                         }
 
                         break;
@@ -246,12 +236,12 @@ namespace Oxide.Plugins
                         // kick <SteamID> [Reason]
                         if (debug)
                         {
-                            arg.ReplyWith($"[DEBUG] -> KICK: Player \"{playerName}\" [{steamId}].");
+                            outputBuffer += $"[DEBUG] -> KICK: Player \"{playerName}\" [{steamId}].\n";
                         }
                         else
                         {
                             ConsoleSystem.Run(ConsoleSystem.Option.Server, $"kick {steamId} \"{action.Reason}\"");
-                            arg.ReplyWith($"-> KICK: Player \"{playerName}\" [{steamId}].");
+                            outputBuffer += $"-> KICK: Player \"{playerName}\" [{steamId}].\n";
                         }
                         break;
 
@@ -259,34 +249,32 @@ namespace Oxide.Plugins
                         // wipe player/team (best effort)
                         if (debug)
                         {
-                            arg.ReplyWith($"[DEBUG] -> WIPE: Player \"{playerName}\" [{steamId}]. Data and entities wiped.");
+                            outputBuffer += $"[DEBUG] -> WIPE: Player \"{playerName}\" [{steamId}]. Data and entities wiped.\n";
                         }
                         else
                         {
-                            WipePlayerData(arg, steamId, player, playerName);
-                            arg.ReplyWith($"-> WIPE: Player \"{playerName}\" [{steamId}]. Data and entities wiped.");
+                            WipePlayerData(steamId, player, playerName);
+                            outputBuffer += $"-> WIPE: Player \"{playerName}\" [{steamId}]. Data and entities wiped.\n";
                         }
                         break;
                 }
             }
 
-            string summary = $"Action '{action.BaseCommand}' completed successfully for {action.TargetSteamIDs.Count} player(s).";
-            if (!arg.IsRcon) Puts(summary); // make sure *this* is visible in the server log
-            arg.ReplyWith(summary);
+            outputBuffer += $"Action '{action.BaseCommand}' completed successfully for {action.TargetSteamIDs.Count} player(s).\n";
         }
 
-        private void WipePlayerData(ConsoleSystem.Arg arg, ulong steamId, BasePlayer player, string playerName)
+        private void WipePlayerData(ulong steamId, BasePlayer player, string playerName)
         {
             // a) Strip inventory (only possible if player alive)
             if (player != null && !player.IsDead())
             {
                 player.inventory.Strip();
                 player.SendNetworkUpdateImmediate();
-                arg.ReplyWith($"  > Inventory cleared for \"{playerName}\".");
+                outputBuffer += $"  > Inventory cleared for \"{playerName}\".\n";
             }
             else
             {
-                arg.ReplyWith($"  > Inventory clear skipped (no active player entity): [{steamId}].");
+                outputBuffer += $"  > Inventory clear skipped (no active player entity): [{steamId}].\n";
             }
 
             // b) Blueprint wipe (only possible if player alive)
@@ -294,22 +282,22 @@ namespace Oxide.Plugins
             {
                 player.blueprints.Reset();
                 player.SendNetworkUpdateImmediate();
-                arg.ReplyWith($"  > Blueprints reset for \"{playerName}\".");
+                outputBuffer += $"  > Blueprints reset for \"{playerName}\".\n";
             }
             else
             {
-                arg.ReplyWith($"  > Blueprint wipe skipped (no active player entity): [{steamId}]");
+                outputBuffer += $"  > Blueprint wipe skipped (no active player entity): [{steamId}]\n";
             }
 
             // c) Delete player entities
             ConsoleSystem.Run(ConsoleSystem.Option.Server, $"deleteby {steamId}");
-            arg.ReplyWith($"  > Entities wiped for {steamId} using 'deleteby' command.");
+            outputBuffer += $"  > Entities wiped for {steamId} using 'deleteby' command.\n";
 
             // d) Remove player (only possible if player alive)
             if (player != null && !player.IsDead())
                 player.Die();
             else
-                arg.ReplyWith($"  > Player kill skipped (no active player entity): [{steamId}].");
+                outputBuffer += $"  > Player kill skipped (no active player entity): [{steamId}].\n";
 
         }
 
@@ -336,6 +324,14 @@ namespace Oxide.Plugins
 
             foreach (string key in keysToRemove)
                 pendingActions.Remove(key);
+        }
+
+        private void SendOutput(ConsoleSystem.Arg arg)
+        {
+            outputBuffer = outputBuffer.TrimEnd('\n');
+            if (arg.Connection != null || arg.IsRcon)
+                arg.ReplyWith(outputBuffer); // F1 console or RCon
+            Puts(outputBuffer); // also send to server log
         }
     }
 }
