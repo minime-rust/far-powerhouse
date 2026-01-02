@@ -388,6 +388,7 @@ namespace Oxide.Plugins
             {
                 var w = info.WeaponPrefab.ShortPrefabName;
                 if (w == "catapult.entity" ||
+                    w == "snowball.entity" ||
                     w == "watergun.entity" ||
                     w == "waterpistol.entity")
                     return; // ignore
