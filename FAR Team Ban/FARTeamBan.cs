@@ -6,7 +6,7 @@ using Oxide.Core.Libraries.Covalence;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Team Ban", "miniMe", "1.0.1")]
+    [Info("FAR: Team Ban", "miniMe", "1.0.2")]
     [Description("Allows admins to execute kick, ban, or full data wipe actions on entire teams via console or RCON.")]
     public class FARTeamBan : CovalencePlugin
     {
@@ -120,7 +120,7 @@ namespace Oxide.Plugins
 
         private void CheckAndConfirmAction(ConsoleSystem.Arg arg, string baseCommand, string reason, float hours, List<ulong> teamIDs)
         {
-            string commandKey = arg.FullString.Trim();
+            string commandKey = $"{baseCommand} {arg.FullString}".Trim();
 
             // 1. Lazy cleanup
             CleanupPendingActions();
@@ -134,7 +134,7 @@ namespace Oxide.Plugins
                 {
                     // Valid confirmation. Go for it!
                     ExecuteAction(action);
-                    pendingActions.Remove(commandKey);
+                    pendingActions.Clear();
                     outputBuffer += $"Success: The command '{action.CommandKey}' has been executed.\n";
                 }
                 else

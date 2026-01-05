@@ -40,5 +40,6 @@ All commands require **SteamID** of any team member. The plugin will automatical
 - Regular players **cannot** trigger these commands.
 
 ## Changelog
+*   **2026-01-05** `1.0.2` corrected input echoed back to user correctly for confirmation
 *   **2025-12-18** `1.0.1` Sanitized information shown to moderators, code clean up
 *   **2025-12-15** `1.0.0` Initial version
