@@ -24,6 +24,7 @@ We encourage you to explore the individual plugin folders for more information:
 *   **[FAR Map Helper](FAR%20Map%20Helper/)** - A little map helper for your own plugin - gives you map square and monument name.
 *   **[FAR Supply Lock](FAR%20Supply%20Lock/)** - Re-engineered and improved version of original Supply Lock plugin by Ghosty.
 *   **[FAR TC Lock Auth Guard](FAR%20TC%20Lock%20Auth%20Guard/)** - Changes TC behavior to be what it should have been to begin with.
+*   **[FAR Team Ban](FAR%20Team%20Ban/)** - Admin's sledge hammer in situations where you need to ban an entire team *fast*.
 *   **[FAR Vehicle Locks](FAR%20Vehicle%20Locks/)** - Rewrite of the Horse Lock, extended to various kinds of vehicles.
 *   **[language](language/)** - Supporting language files for some of our plugins.
 
