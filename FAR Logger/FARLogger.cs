@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Logger", "miniMe", "1.3.0")]
+    [Info("FAR: Logger", "miniMe", "1.3.2")]
     [Description("A flexible, Discord-integrated event logger for admins")]
 
     public class FARLogger : CovalencePlugin
@@ -40,6 +40,7 @@ namespace Oxide.Plugins
             public AirdropConfig Airdrop { get; set; } = new AirdropConfig();
             public BasesConfig Bases { get; set; } = new BasesConfig(); // This handles Abandoned and Raidable Bases
             public DoorKnockersConfig DoorKnockers { get; set; } = new DoorKnockersConfig();
+            public FairPlayConfig FairPlay { get; set; } = new FairPlayConfig();
             public GTNConfig GuessTheNumber { get; set; } = new GTNConfig();
             public PluginMonitorConfig PluginMonitor { get; set; } = new PluginMonitorConfig();
             public ScheduledCommandConfig ScheduledCommand { get; set; } = new ScheduledCommandConfig();
@@ -70,6 +71,12 @@ namespace Oxide.Plugins
         }
 
         private class DoorKnockersConfig
+        {
+            public bool Enabled { get; set; } = false;
+            public bool DiscordNotify { get; set; } = false;
+        }
+
+        private class FairPlayConfig
         {
             public bool Enabled { get; set; } = false;
             public bool DiscordNotify { get; set; } = false;
@@ -126,6 +133,7 @@ namespace Oxide.Plugins
             public string AirdropWebhook { get; set; } = "";
             public string BasesWebhook { get; set; } = "";
             public string DoorKnockersWebhook { get; set; } = "";
+            public string FairPlayWebhook { get; set; } = "";
             public string GuessNumberWebhook { get; set; } = "";
             public string PluginsWebhook { get; set; } = "";
             public string UsersCfgWebhook { get; set; } = "";
@@ -149,6 +157,7 @@ namespace Oxide.Plugins
                 config.Airdrop ??= new AirdropConfig();
                 config.Bases ??= new BasesConfig();
                 config.DoorKnockers ??= new DoorKnockersConfig();
+                config.FairPlay ??= new FairPlayConfig();
                 config.GuessTheNumber ??= new GTNConfig();
                 config.PluginMonitor ??= new PluginMonitorConfig();
                 config.ScheduledCommand ??= new ScheduledCommandConfig();
@@ -166,7 +175,6 @@ namespace Oxide.Plugins
             SaveConfig();
         }
 
-        // This method is called automatically by base.SaveConfig() or can be called explicitly
         protected override void SaveConfig() =>
             Config.WriteObject(config);
 
@@ -175,47 +183,34 @@ namespace Oxide.Plugins
         #region DATA
 
         // #####################################################################
+        // Detect wipe, even if map seed or size didn't change
+        private bool wipeDetected = false;
+        private void OnNewSave(string filename) => wipeDetected = true;
+
+        // #####################################################################
         // Compact single-file data lifecycle
         private StoredData data;
-        private Timer saveDebounce;
         private Timer _UsersCfgTimer;
-        private const float SaveDebounceSec = 2f;
         private string _usersCfgPath;
 
         [Serializable]
-        private class UsersCfgData
-        { public string LastHash = string.Empty; }
+        private class UsersCfgData { public string LastHash = string.Empty; }
 
         [Serializable]
-        private class WipeData
-        { public uint Seed = 0u; }
+        private class StoredData { public UsersCfgData UsersCfg = new UsersCfgData(); }
 
-        [Serializable]
-        private class StoredData
-        {
-            public WipeData Wipe = new WipeData();
-            public UsersCfgData UsersCfg = new UsersCfgData();
-        }
+        private void LoadData() =>
+            data = Interface.Oxide.DataFileSystem.ReadObject<StoredData>(Name) ?? new StoredData();
 
-        private void LoadData()
-        { data = Interface.Oxide.DataFileSystem.ReadObject<StoredData>(Name) ?? new StoredData(); }
-
-        private void SaveDataDebounced()
-        {
-            saveDebounce?.Destroy();
-            saveDebounce = timer.Once(SaveDebounceSec, SaveDataImmediate);
-        }
-
-        private void SaveDataImmediate()
-        { Interface.Oxide.DataFileSystem.WriteObject(Name, data); }
+        private void SaveData() =>
+            Interface.Oxide.DataFileSystem.WriteObject(Name, data);
 
         // #####################################################################
-        // Wipe (server.seed) Monitor
-        private uint GetWipeSeed() => data?.Wipe?.Seed ?? 0u;
-        private void SetWipeSeed(uint seed) { data.Wipe.Seed = seed; SaveDataDebounced(); }
         // "server/{identity}/cfg/users.cfg" Monitor
         private string GetLastHash() => data?.UsersCfg?.LastHash ?? string.Empty;
-        private void SetLastHash(string hash) { data.UsersCfg.LastHash = hash; SaveDataDebounced(); }
+        private void SetLastHash(string hash) { data.UsersCfg.LastHash = hash; SaveData(); }
+
+        // #####################################################################
         // Airdrop tracking: in-memory to avoid double notification per crate
         private readonly HashSet<ulong> lootedSupplyDrops = new HashSet<ulong>();
 
@@ -234,8 +229,8 @@ namespace Oxide.Plugins
         private const float DiscordIntervalSeconds = 1.0f; // 1 message per second default (tuneable)
         private readonly object _discordQueueLock = new object();
         // #####################################################################
-        // Plugin load time
-        private DateTime pluginStartTime = DateTime.UtcNow;
+        // Boolean gate to suppress logging during startup
+        private bool enableDiscordLogging = false;
 
         // Get timestamp for Discord
         private string GetDiscordTimestamp()
@@ -251,46 +246,21 @@ namespace Oxide.Plugins
 
         #region PLAYER NAME RESOLVER
 
-        // Resolve a best-effort player name from an ID (online, sleeper, covalence, server users).
+        // Resolve a best-effort player name from an ID (online, sleeper, covalence).
         // Returns a trimmed display name, or the ID string if nothing else is available.
         private string GetPlayerName(ulong playerId)
         {
-            if (playerId == 0) return "0";
+            if (playerId == 0) return string.Empty;
 
-            // Local sanitizer keeps the logic in one place without a separate class-level method.
-            static string Sanitize(string name)
-            {
-                if (string.IsNullOrWhiteSpace(name)) return name;
-                // Normalize whitespace and trim
-                name = name.Replace('\n', ' ').Replace('\r', ' ').Replace('\t', ' ').Trim();
-                // Hard cap to avoid abuse in chat/webhooks/logs
-                const int Max = 64;
-                return name.Length <= Max ? name : name.Substring(0, Max);
-            }
-
-            // 1) Online
-            var bp = BasePlayer.FindByID(playerId);
+            var bp = BasePlayer.FindByID(playerId) ?? BasePlayer.FindSleeping(playerId);
             if (bp != null && !string.IsNullOrWhiteSpace(bp.displayName))
-                return Sanitize(bp.displayName);
+                return bp.displayName.Trim();
 
-            // 2) Sleeper
-            bp = BasePlayer.FindSleeping(playerId);
-            if (bp != null && !string.IsNullOrWhiteSpace(bp.displayName))
-                return Sanitize(bp.displayName);
+            var player = covalence?.Players?.FindPlayerById(playerId.ToString());
+            if (player != null && !string.IsNullOrWhiteSpace(player.Name))
+                return player.Name.Trim();
 
-            // 3) Covalence
-            var idStr = playerId.ToString(CultureInfo.InvariantCulture);
-            var ip = covalence?.Players?.FindPlayerById(idStr);
-            if (ip != null && !string.IsNullOrWhiteSpace(ip.Name))
-                return Sanitize(ip.Name);
-
-            // 4) ServerUsers
-            var su = ServerUsers.Get(playerId);
-            if (su != null && !string.IsNullOrWhiteSpace(su.username))
-                return Sanitize(su.username);
-
-            // 5) Fallback
-            return idStr;
+            return playerId.ToString();
         }
         #endregion
 
@@ -301,6 +271,11 @@ namespace Oxide.Plugins
         private const string Lang_SupplyDropLooted = "SupplyDropLooted";
         private const string Lang_SupplyDropLootedDiscord = "SupplyDropLootedDiscord";
         private const string Lang_ServerWipeDetectedDiscord = "ServerWipeDetectedDiscord";
+        private const string Lang_AbandonedBaseSkippedDiscord = "AbandonedBaseSkippedDiscord";
+        private const string Lang_AbandonedBaseStartedDiscord = "AbandonedBaseStartedDiscord";
+        private const string Lang_AbandonedBaseClaimedDiscord = "AbandonedBaseClaimedDiscord";
+        private const string Lang_AbandonedBaseCompletedDiscord = "AbandonedBaseCompletedDiscord";
+        private const string Lang_AbandonedBaseEndedDiscord = "AbandonedBaseEndedDiscord";
         private const string Lang_RaidableBasePurchasedDiscord = "RaidableBasePurchasedDiscord";
         private const string Lang_RaidableBaseStartedDiscord = "RaidableBaseStartedDiscord";
         private const string Lang_RaidableBaseCompletedDiscord = "RaidableBaseCompletedDiscord";
@@ -335,6 +310,12 @@ namespace Oxide.Plugins
                 [Lang_TimeRemaining] = "Time until wipe: {0} days {1} hours {2} minutes",
                 [Lang_ServerWipeDetectedDiscord] = "**Server wipe detected!**\nNew map: {0}",
                 [Lang_LondonTime] = "London time",
+                // Abandoned Bases
+                [Lang_AbandonedBaseSkippedDiscord] = ":homes: {0} `{1}`'s Abandoned {2} despawned at `{3}` without becoming raidable ][ Reason: {4}",
+                [Lang_AbandonedBaseStartedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base became raidable at `{3}`",
+                [Lang_AbandonedBaseClaimedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base was claimed by `{3}` at `{4}`",
+                [Lang_AbandonedBaseCompletedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base completed at `{3}`",
+                [Lang_AbandonedBaseEndedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base ended at `{3}`",
                 // Raidable Bases
                 [Lang_RaidableBasePurchasedDiscord] = ":homes: {0} `{1}` has paid for the {2} Raidable **{3}** Base (`{4}`) at `{5}`",
                 [Lang_RaidableBaseStartedDiscord] = ":homes: {0} {1} Raidable **{2}** Base spawned at `{3}`",
@@ -376,6 +357,9 @@ namespace Oxide.Plugins
 
         #region PLUGIN LIFECYCLE
 
+        // Dictionary to store the original owners of Abandoned Base events
+        private Dictionary<Vector3, ulong> baseOwners = new Dictionary<Vector3, ulong>();
+
         // OnLoaded: plugin initialization
         private void Init()
         {
@@ -387,16 +371,14 @@ namespace Oxide.Plugins
 
         private void Unload()
         {
-            // Save Wipe and UsersCfg Data
-            SaveDataImmediate();
             // Clear Supply Drops on plugin unload
             lootedSupplyDrops.Clear();
+            // Clean up baseOwners dictionary
+            baseOwners.Clear();
             // Clear our timers
             _discordQueueTimer?.Destroy();
-            saveDebounce?.Destroy();
             _UsersCfgTimer?.Destroy();
             _discordQueueTimer = null;
-            saveDebounce = null;
             _UsersCfgTimer = null;
             // Clean up the FAR: Map Helper instance
             FARMapHelper = null;
@@ -410,14 +392,17 @@ namespace Oxide.Plugins
         private void VerifyMapHelper()
         {
             if (IsMapHelperReady())
-            { Puts("FAR Map Helper plugin found. We will be using it's API."); }
+                Puts("FAR Map Helper plugin found. We will be using its API.");
             else
-            { Puts("FAR Map Helper not loaded. Map Helper API is not available."); }
+                Puts("FAR Map Helper not loaded. Map Helper API is not available.");
         }
 
         private void OnServerInitialized()
         {
-            pluginStartTime = DateTime.UtcNow;
+            // Enable Plugin load/reload logging x seconds after the server initialized
+            timer.Once(config?.General?.PluginMonitorStartupIgnoreSeconds ?? 120, () =>
+                { enableDiscordLogging = true; }
+            );
 
             // Check if FARMapHelper is loaded
             NextTick(VerifyMapHelper);
@@ -439,7 +424,7 @@ namespace Oxide.Plugins
             if (config?.ServerWipes?.Enabled ?? false)
             {
                 CheckWipeOnStartup();
-                Puts("Wipe Detector enabled. Watching server.seed once per server start.");
+                Puts("Wipe Detector enabled. Checking for server wipes once per server start.");
             }
 
             // users.cfg checksum monitoring - set timer to 300 seconds to run checksum
@@ -454,23 +439,44 @@ namespace Oxide.Plugins
             if (config?.DoorKnockers?.Enabled ?? false)
                 Puts($"Door Knockers monitor enabled. Watching rejected user logins.");
 
+            // --- FAIR PLAY ---
+            if (config?.FairPlay?.Enabled ?? false)
+            {
+                if (plugins?.Find("FARFairPlay") != null)
+                    Puts("FAR: Fair Play plugin found. Listening to its hooks.");
+                else
+                    Puts("FAR: Fair Play plugin not found. Fair Play notifications will be disabled.");
+            }
+
             // --- GUESS THE NUMBER ---
             if (config?.GuessTheNumber?.Enabled ?? false)
             {
                 if (plugins?.Find("GuessTheNumber") != null)
-                    Puts("Guess The Number plugin found. Subscribing to its hooks.");
+                    Puts("Guess The Number plugin found. Listening to its hooks.");
                 else
                     Puts("Guess The Number plugin not found. GTN notifications will be disabled.");
             }
 
-            // --- RAIDABLE BASES ---
+            // --- BASES EVENTS ---
             if (config?.Bases?.Enabled ?? false)
             {
+                // --- ABANDONED BASES ---
+                if (plugins?.Find("AbandonedBases") != null)
+                {
+                    Puts("Abandoned Bases plugin found. Listening to its hooks.");
+                    if (wipeDetected)
+                        SendDiscordMessage(config?.Webhooks?.BasesWebhook ?? string.Empty,
+                            $":homes: {GetDiscordTimestamp()} [Abandoned Bases] New save detected; wiped data.");
+                }
+                else
+                    Puts("Abandoned Bases plugin not found. Abandoned Base notifications will be disabled.");
+                // --- RAIDABLE BASES ---
                 if (plugins?.Find("RaidableBases") != null)
-                    Puts("Raidable Bases plugin found. Subscribing to its hooks.");
+                    Puts("Raidable Bases plugin found. Listening to its hooks.");
                 else
                     Puts("Raidable Bases plugin not found. Raidable Base notifications will be disabled.");
             }
+
         }
 
         // Support execution of startup command(s) if configured
@@ -512,7 +518,7 @@ namespace Oxide.Plugins
                 return null;
 
             // Check config
-            if (!(config?.Airdrop?.Enabled ?? false) || drop == null || player == null)
+            if (!(config?.Airdrop?.Enabled ?? false) || player == null)
                 return null;
 
             // Get the id of the supply_drop
@@ -546,6 +552,46 @@ namespace Oxide.Plugins
 
         #endregion
 
+        #region FAIR PLAY
+
+        // ################################################################
+        // OnFairPlayScheduledForRemoval
+        // Signature (ulong userId, Vector3 pos)
+        private void OnFairPlayScheduledForRemoval(ulong userId, Vector3 eventPos)
+        {   // check if feature enabled
+            var webhookURL = config?.Webhooks?.FairPlayWebhook ?? string.Empty;
+            if (!(config?.FairPlay?.Enabled ?? false) || !(config?.FairPlay?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+                return;
+            // get event location
+            GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
+            // assemble message to be sent to Discord
+            var message = $":stopwatch: {GetDiscordTimestamp()} Player `{GetPlayerName(userId)}` [{userId}] at `{mapSquare}` {eventPos.ToString()} has been scheduled for removal in 20 minutes!";
+            // add message to queue
+            SendDiscordMessage(webhookURL, message);
+        }
+
+        // ################################################################
+        // OnFairPlayPlayerRelocated
+        // Signature (ulong callerId, ulong sleeperId, Vector3 fromPos, Vector3 toPos)
+        private void OnFairPlayPlayerRelocated(ulong callerId, ulong sleeperId, Vector3 fromPos, Vector3 toPos)
+        {   // check if feature enabled
+            var webhookURL = config?.Webhooks?.FairPlayWebhook ?? string.Empty;
+            if (!(config?.FairPlay?.Enabled ?? false) || !(config?.FairPlay?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+                return;
+            // get event location
+            GetMapSquareAndMonument(fromPos, out string mapSquareFrom, out string monumentFrom);
+            GetMapSquareAndMonument(toPos, out string mapSquareTo, out string monumentTo);
+            // get player and sleeper names
+            var callerName = GetPlayerName(callerId);
+            var sleeperName = GetPlayerName(sleeperId);
+            // assemble message to be sent to Discord
+            var message = $":people_wrestling: {GetDiscordTimestamp()} Player `{callerName}` [{callerId}] moved a sleeper `{sleeperName}` [{sleeperId}] from location `{mapSquareFrom}` {fromPos.ToString()} to location `{mapSquareTo}` {toPos.ToString()}!";
+            // add message to queue
+            SendDiscordMessage(webhookURL, message);
+        }
+
+        #endregion
+
         #region SERVER WIPES
 
         private static readonly TimeZoneInfo LondonTimeZone =
@@ -569,19 +615,11 @@ namespace Oxide.Plugins
 
         private void CheckWipeOnStartup()
         {
+            if (!wipeDetected)   // Not wiped, just leave
+                return;
+
             int worldSize = ConVar.Server.worldsize;
             var mapSeed = unchecked((uint)ConVar.Server.seed);
-            if (GetWipeSeed() == 0u)        // No need to check for wipe on first run
-            {
-                SetWipeSeed(mapSeed);
-                return;
-            }
-
-            if (GetWipeSeed() == mapSeed)   // Map Seed didn't change ... just leave
-                return;
-
-            // Seed changed -> treat as wipe
-            SetWipeSeed(mapSeed);
 
             var rustMapsApiKey = config?.ServerWipes?.RustMapsApiKey ?? string.Empty;
             if (!string.IsNullOrWhiteSpace(rustMapsApiKey))
@@ -590,7 +628,6 @@ namespace Oxide.Plugins
 
         private void RequestRustMapGeneration(string apiKey, int worldSize, uint mapSeed)
         {
-
             var jobKey = $"{worldSize}_{mapSeed}";
             const int PollIntervalSeconds = 600; // 10 min
             const int MaxElapsedSeconds = 3600;  // 1 hour
@@ -745,6 +782,150 @@ namespace Oxide.Plugins
             // build message and send to Discord
             var message = Lang("DoorKnockersDiscord", null, GetDiscordTimestamp(), name, steamid, reason, ip);
             NextTick(() => SendDiscordMessage(webhookURL, message));
+        }
+
+        #endregion
+
+        #region ABANDONED BASES
+        // ################################################################
+        // Abandoned Bases
+        // ################################################################
+        private void OnBaseSkipped(Vector3 eventPos, ulong ownerId, HashSet<ulong> owners, string reason, BuildingManager.Building building) =>
+            HandleAbandonedSkipped(eventPos, ownerId, owners, reason, "Base");
+        private void OnShelterSkipped(Vector3 eventPos, ulong ownerId, HashSet<ulong> owners, string reason, BaseEntity entity) =>
+            HandleAbandonedSkipped(eventPos, ownerId, owners, reason, "Shelter");
+        private void OnTugboatSkipped(Vector3 eventPos, ulong ownerId, HashSet<ulong> owners, string reason, BaseEntity entity) =>
+            HandleAbandonedSkipped(eventPos, ownerId, owners, reason, "Tugboat");
+        // ################################################################
+        // Handle all 3 of the above hooks in this combined function
+        private void HandleAbandonedSkipped(Vector3 eventPos, ulong ownerId, HashSet<ulong> owners, string reason, string structureType)
+        {   // check if feature enabled
+            var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
+            if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+                return;
+            // check for valid position
+            if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
+                return;
+            // resolve owner name from SteamID
+            var ownerName = ownerId == 0UL
+                          ? Lang("BasesUnowned", null)
+                          : GetPlayerName(ownerId);
+            // get raid properties
+            GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
+            // Assemble message to be sent to Discord
+            var message = Lang("AbandonedBaseSkippedDiscord", null, GetDiscordTimestamp(), ownerName, structureType, $"{mapSquare} {eventPos.ToString()}", reason);
+            // [Lang_AbandonedBaseSkippedDiscord] = ":homes: {0} `{1}`'s Abandoned {2} despawned at `{3}` without becoming raidable ][ Reason: {4}",
+            SendDiscordMessage(webhookURL, message);
+        }
+        // ################################################################
+        // OnAbandonedBaseStarted
+        // Signature (Vector3 center, float radius, bool AllowPVP, List<BasePlayer> intruders, List<ulong> intruderIds,
+        //            List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        private void OnAbandonedBaseStarted(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> intruders, List<ulong> intruderIds, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        {   // check if feature enabled
+            var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
+            if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+                return;
+            // check for valid position
+            if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
+                return;
+            // resolve owner name from SteamID
+            ulong ownerId = TryGetBaseOwner(eventPos, entities);
+            var ownerName = ownerId == 0UL
+                          ? Lang("BasesUnowned", null)
+                          : GetPlayerName(ownerId);
+            // get raid properties
+            var PvX = allowPVP ? "PVP" : "PVE";
+            GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
+            // Assemble message to be sent to Discord
+            var message = Lang("AbandonedBaseStartedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, $"{mapSquare} {eventPos.ToString()}");
+            // [Lang_AbandonedBaseStartedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base became raidable at `{3}`",
+            SendDiscordMessage(webhookURL, message);
+        }
+        // ################################################################
+        // OnAbandonedBaseCompleted
+        // Signature (Vector3 center, float radius, bool AllowPVP, List<BasePlayer> intruders, List<ulong> intruderIds,
+        //            List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        private void OnAbandonedBaseCompleted(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> intruders, List<ulong> intruderIds, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        {   // check if feature enabled
+            var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
+            if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+                return;
+            // check for valid position
+            if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
+                return;
+            // resolve owner name from SteamID
+            ulong ownerId = baseOwners.TryGetValue(eventPos, out var cached) ? cached : 0UL;
+            var ownerName = ownerId == 0UL
+                          ? Lang("BasesUnowned", null)
+                          : GetPlayerName(ownerId);
+            // get raid properties
+            var PvX = allowPVP ? "PVP" : "PVE";
+            GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
+            // Assemble message to be sent to Discord
+            var message = Lang("AbandonedBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, $"{mapSquare} {eventPos.ToString()}");
+            // [Lang_AbandonedBaseCompletedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base completed at `{3}`",
+            SendDiscordMessage(webhookURL, message);
+        }
+        // ################################################################
+        // OnAbandonedBaseEnded
+        // Signature (Vector3 center, float radius, bool AllowPVP, List<BasePlayer> participants, List<ulong> participantIds,
+        //            List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        private void OnAbandonedBaseEnded(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> raiders, List<ulong> raidersList, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        {   // check if feature enabled
+            var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
+            if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+                return;
+            // check for valid position
+            if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
+                return;
+            // resolve owner name from SteamID
+            ulong ownerId = baseOwners.TryGetValue(eventPos, out var cached) ? cached : 0UL;
+            var ownerName = ownerId == 0UL
+                          ? Lang("BasesUnowned", null)
+                          : GetPlayerName(ownerId);
+            // remove this abandoned base entry from the dictionary
+            baseOwners.Remove(eventPos);
+            // build raiders list (player names of participants, comma-separated)
+            var raidersNames = string.Join(", ",
+                (raidersList ?? Enumerable.Empty<ulong>())
+                                .Select(GetPlayerName)
+                                .Where(n => !string.IsNullOrWhiteSpace(n)));
+            if (string.IsNullOrEmpty(raidersNames))
+                raidersNames = Lang("BasesNoRaiders", null);
+            // get raid properties
+            var PvX = allowPVP ? "PVP" : "PVE";
+            GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
+            // Assemble message to be sent to Discord
+            var message = Lang("AbandonedBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, $"{mapSquare} {eventPos.ToString()}") +
+                          Lang("BasesRaiders", null, raidersNames);
+            // [Lang_AbandonedBaseEndedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base ended at `{3}`",
+            SendDiscordMessage(webhookURL, message);
+        }
+        // ################################################################
+        // OnAbandonedBaseClaimed
+        // Signature (BasePlayer player, Vector3 center, float radius, bool AllowPVP, List<BasePlayer> participants, List<ulong> participantIds,
+        //            List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        private void OnAbandonedBaseClaimed(BasePlayer player, Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> raiders, List<ulong> raidersList, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        {   // check if feature enabled
+            var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
+            if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
+                return;
+            // check for valid position
+            if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
+                return;
+            // resolve owner name from SteamID
+            ulong ownerId = baseOwners.TryGetValue(eventPos, out var cached) ? cached : 0UL;
+            var ownerName = ownerId == 0UL
+                          ? Lang("BasesUnowned", null)
+                          : GetPlayerName(ownerId);
+            // get raid properties
+            var PvX = allowPVP ? "PVP" : "PVE";
+            GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
+            // Assemble message to be sent to Discord
+            var message = Lang("AbandonedBaseClaimedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, player.displayName, $"{mapSquare} {eventPos.ToString()}");
+            // [Lang_AbandonedBaseClaimedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base was claimed by `{3}` at `{4}`",
+            SendDiscordMessage(webhookURL, message);
         }
 
         #endregion
@@ -958,12 +1139,9 @@ namespace Oxide.Plugins
         }
         private bool IsMapHelperReady() =>
             FARMapHelper != null && FARMapHelper.IsLoaded;
-        private bool PluginMonitorIgnoreEvent()
-        {
-            var ignoreStartupSeconds = config?.General?.PluginMonitorStartupIgnoreSeconds ?? 120;
-            // returns true if server within (120) seconds after start, or if server is shutting down. Otherwise false.
-            return (DateTime.UtcNow - pluginStartTime).TotalSeconds < ignoreStartupSeconds || Interface.Oxide.IsShuttingDown;
-        }
+
+        // returns true if server within set seconds after start, or if server is shutting down. Otherwise false.
+        private bool PluginMonitorIgnoreEvent() { return !enableDiscordLogging || Interface.Oxide.IsShuttingDown; }
 
         #endregion
 
@@ -1039,7 +1217,6 @@ namespace Oxide.Plugins
                 SendDiscordMessage(webhookURL, message);
         }
 
-        // Event handlers now call the helper method
         private object OnGTNEventStart(int min, int max)
         {
             SendGTNNotification("GTNStartDiscord", GetDiscordTimestamp(), min, max);
@@ -1071,9 +1248,9 @@ namespace Oxide.Plugins
         // a handle to the local ScheduleNext() so Adjust can re-arm without duplicating logic
         private Action _scheduleNextHandle;
 
-        // tuneables (make config-driven if you prefer)
-        private const int AlignPeriodSeconds = 3600;   // 1 hour
-        private const int SkipAdjustWithinSeconds = 1800; // 30 minutes
+        // fine tuning to control our command schedule timers
+        private const int AlignPeriodSeconds = 3600; // 1 hour timer to readjust and compensate drift
+        private const int SkipAdjustWithinSeconds = 1800; // 30 minutes safety window
 
         private void StartDailyUtcCommand(string timeUtc, string fullConsoleLine)
         {
@@ -1151,6 +1328,46 @@ namespace Oxide.Plugins
         #endregion
 
         #region UTILITY METHODS
+
+        // Attempts to determine the owner of an abandoned base event by scanning the entity list for Tool Cupboards
+        // (all known variants), then falling back to the first non-zero OwnerID found on any other entity if needed.
+        // Caches the result in baseOwners for eventPos for future use.
+        private ulong TryGetBaseOwner(Vector3 eventPos, List<BaseEntity> entities)
+        {
+            ulong tcOwnerId = 0UL;       // OwnerId from a TC
+            ulong fallbackOwnerId = 0UL; // OwnerId from any other entity
+            BuildingPrivlidge foundTC = null;
+
+            // Scan entities for TCs (all known variants)
+            foreach (var entity in entities)
+            {
+                if (entity == null) continue;
+
+                // Accept known TC variants: vanilla, retro, shockbyte
+                if (entity is BuildingPrivlidge tc)
+                {
+                    foundTC = tc;
+                    if (tc.OwnerID != 0UL)
+                    {
+                        tcOwnerId = tc.OwnerID;
+                        break; // Early exit: TC with owner found (best case)
+                    }
+                }
+                else if (fallbackOwnerId == 0UL && entity.OwnerID != 0UL)
+                    fallbackOwnerId = entity.OwnerID; // First non-TC owner, keep as fallback
+            }
+
+            ulong ownerId = tcOwnerId != 0UL ? tcOwnerId : fallbackOwnerId;
+            baseOwners[eventPos] = ownerId;
+
+            // Optional diagnostics - prefab name is for info only
+            string tcStatus = foundTC != null
+                ? $"TC found ({foundTC.ShortPrefabName}), OwnerID: {tcOwnerId}"
+                : "No TC found";
+            Puts($"[AbandonedBaseOwner] Scan @ {eventPos}: {tcStatus} | Entity fallback: {fallbackOwnerId}");
+
+            return ownerId;
+        }
 
         // Try to get map square and monument via external API_MapInfo if available
         private void GetMapSquareAndMonument(Vector3 position, out string mapSquare, out string monument)

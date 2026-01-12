@@ -55,21 +55,6 @@ if (farLoggerPlugin != null)
 
 ```
 
-## Changelog
-
-### 1.3.0 - 2025-11-20
-*   **Improved rustmaps.com integration:** Delayed Discord notification on map change to allow map generation to finish and ensure Discord has a proper embed / map preview
-
-### 1.2.6 - 2025-09-22
-*   **Message Injection:** Added a method to (optionally) handle Discord notifications from other plugins in the FAR framework
-
-### 1.2.6 - 2025-09-21
-*   **Code cleanup:** Simplified the queue, solving a race condition between concurrent timers. Now there is only 1 worker responsible for the queue.
-
-### 1.2.5 - 2025-09-20
-*   **Added rustmaps.com support:** If you configure your API Key for rustmaps.com your new map can now be requested to be generated automatically
-*   **Code cleanup:** Removed unused code and configuration, improved Discord messages with a simple queue and retry to handle getting rate limited
-
 ## Highlights
 
 ### Automated Supply Drop Loot Announcements: Ending PvE Frustration
@@ -156,8 +141,6 @@ The plugin offers extensive configuration options to fine-tune every aspect of l
   "Webhooks": {
     "AirdropWebhook": "", // Discord webhook URL for Airdrop looting notifications.
     "WipeWebhook": "", // Discord webhook URL for server wipe notifications.
-    "TrapperWebhook": "", // Discord webhook URL for FARTrapper notifications (obsolete, will be removed).
-    "NoPvPWebhook": "", // Discord webhook URL for FARNoPvP notifications (obsolete, will be removed).
     "BasesWebhook": "", // Discord webhook URL for Raidable/Abandoned Bases notifications.
     "VendorWebhook": "", // Discord webhook URL for Travelling Vendor notifications.
     "PluginsWebhook": "", // Discord webhook URL for plugin load/unload/reload notifications.
@@ -169,7 +152,7 @@ The plugin offers extensive configuration options to fine-tune every aspect of l
 ```
 
 ## Localization
-FAR Logger supports **partial localization** for messages related to the /wipe chat command. Messages destined for Discord are designed to remain in English to maintain consistency for administrative oversight. Lines 2, 3, and 5 of the language file are intended for translation, while other lines will largely be ignored by the plugin. Ready-to-use localization files for various languages are provided in the `language` folder of our GitHub repository. You can grab the English default or provide your own translations.
+FAR Logger supports **partial localization** for messages related to the /wipe chat command. Messages destined for Discord are designed to remain in English to maintain consistency for administrative oversight. Lines 2, 3, and 5 of the language file are intended for translation, while other lines will largely be ignored by the plugin. Ready-to-use localization files for various languages are provided in the `language` folder of our GitHub repository. You can grab the English default or provide your own translations. If you use our language files, simply reload `FAR: Logger` after storing the files in their respective folder to automatically add any missing default translations.
 
 ## Dependencies
 *  **FAR: Map Helper:** We rely on our "FAR: Map Helper" plugin to resolve Supply Drop locations into specific map squares and monument names. FAR Logger will still function and announce the looting of Supply Drops if Map Helper is not present, but the usefulness will be degraded due to the absence of detailed location information.
@@ -182,3 +165,21 @@ None.
 2.  Place the file into your server's `oxide/plugins` (or `carbon/plugins`) folder.
 3.  The plugin will automatically load upon server restart or when manually reloaded.
 4.  Optionally install "FAR: Map Helper" for enhanced Supply Drop location details.
+
+## Changelog
+
+### 1.3.1 - 2026-01-??
+*   **Code refactor:** Proper integration of Abandoned Bases' hooks, improved wipe detection, simplified timers and data storage. This has been a major clean-up.
+
+### 1.3.0 - 2025-11-20
+*   **Improved rustmaps.com integration:** Delayed Discord notification on map change to allow map generation to finish and ensure Discord has a proper embed / map preview
+
+### 1.2.6 - 2025-09-22
+*   **Message Injection:** Added a method to (optionally) handle Discord notifications from other plugins in the FAR framework
+
+### 1.2.6 - 2025-09-21
+*   **Code cleanup:** Simplified the queue, solving a race condition between concurrent timers. Now there is only 1 worker responsible for the queue.
+
+### 1.2.5 - 2025-09-20
+*   **Added rustmaps.com support:** If you configure your API Key for rustmaps.com your new map can now be requested to be generated automatically
+*   **Code cleanup:** Removed unused code and configuration, improved Discord messages with a simple queue and retry to handle getting rate limited

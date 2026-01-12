@@ -20,6 +20,7 @@ We encourage you to explore the individual plugin folders for more information:
 *   **[FAR Blueprint Bumper](FAR%20Blueprint%20Bumper/)** - Essential helper to bump your blueprints to the next version number.
 *   **[FAR Buyable Events](FAR%20Buyable%20Events/)** - Allow players to call the Patrol Chopper or Launch Site Bradley.
 *   **[FAR Damage Reflection](FAR%20Damage%20Reflection/)** - Manage PVP and Raid damage - essential life saver for PVE servers.
+*   **[FAR Fair Play](FAR%20Fair%20Play/)** - Manage Sleepers, especially non-players and sleeping teammates.
 *   **[FAR Logger](FAR%20Logger/)** - Meant to extend Discord Logger, but grew into it's own kind of thing.
 *   **[FAR Map Helper](FAR%20Map%20Helper/)** - A little map helper for your own plugin - gives you map square and monument name.
 *   **[FAR Supply Lock](FAR%20Supply%20Lock/)** - Re-engineered and improved version of original Supply Lock plugin by Ghosty.
