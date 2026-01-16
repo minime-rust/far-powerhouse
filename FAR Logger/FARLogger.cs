@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Logger", "miniMe", "1.3.2")]
+    [Info("FAR: Logger", "miniMe", "1.3.3")]
     [Description("A flexible, Discord-integrated event logger for admins")]
 
     public class FARLogger : CovalencePlugin
@@ -312,15 +312,15 @@ namespace Oxide.Plugins
                 [Lang_LondonTime] = "London time",
                 // Abandoned Bases
                 [Lang_AbandonedBaseSkippedDiscord] = ":homes: {0} `{1}`'s Abandoned {2} despawned at `{3}` without becoming raidable ][ Reason: {4}",
-                [Lang_AbandonedBaseStartedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base became raidable at `{3}`",
-                [Lang_AbandonedBaseClaimedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base was claimed by `{3}` at `{4}`",
-                [Lang_AbandonedBaseCompletedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base completed at `{3}`",
-                [Lang_AbandonedBaseEndedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base ended at `{3}`",
+                [Lang_AbandonedBaseStartedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} became raidable at `{4}`",
+                [Lang_AbandonedBaseClaimedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} was claimed by `{4}` at `{5}`",
+                [Lang_AbandonedBaseCompletedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} completed at `{4}`",
+                [Lang_AbandonedBaseEndedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} ended at `{4}`",
                 // Raidable Bases
                 [Lang_RaidableBasePurchasedDiscord] = ":homes: {0} `{1}` has paid for the {2} Raidable **{3}** Base (`{4}`) at `{5}`",
-                [Lang_RaidableBaseStartedDiscord] = ":homes: {0} {1} Raidable **{2}** Base spawned at `{3}`",
+                [Lang_RaidableBaseStartedDiscord] = ":homes: {0} {1}{2} Raidable **{3}** Base spawned at `{4}`",
                 [Lang_RaidableBaseCompletedDiscord] = ":homes: {0} `{1}`'s {2} Raidable **{3}** Base completed at `{4}`",
-                [Lang_RaidableBaseEndedDiscord] = ":homes: {0} {1} Raidable **{2}** Base ended at `{3}`",
+                [Lang_RaidableBaseEndedDiscord] = ":homes: {0} {1}{2} Raidable **{3}** Base ended at `{4}`",
                 [Lang_BasesDifficulty0] = "Easy",
                 [Lang_BasesDifficulty1] = "Medium",
                 [Lang_BasesDifficulty2] = "Hard",
@@ -357,8 +357,17 @@ namespace Oxide.Plugins
 
         #region PLUGIN LIFECYCLE
 
+        public class AbandonedBaseInfo
+        {
+            public ulong OwnerId { get; set; }
+            public bool EventEnded { get; set; }
+            public string structureType { get; set; }
+        }
+
         // Dictionary to store the original owners of Abandoned Base events
-        private Dictionary<Vector3, ulong> baseOwners = new Dictionary<Vector3, ulong>();
+        private Dictionary<Guid, AbandonedBaseInfo> baseOwners = new Dictionary<Guid, AbandonedBaseInfo>();
+        // The same to store the original owners of Raidable Base events
+        private Dictionary<string, ulong> raidableBaseOwners = new Dictionary<string, ulong>();
 
         // OnLoaded: plugin initialization
         private void Init()
@@ -374,6 +383,7 @@ namespace Oxide.Plugins
             // Clear Supply Drops on plugin unload
             lootedSupplyDrops.Clear();
             // Clean up baseOwners dictionary
+            raidableBaseOwners.Clear();
             baseOwners.Clear();
             // Clear our timers
             _discordQueueTimer?.Destroy();
@@ -392,9 +402,9 @@ namespace Oxide.Plugins
         private void VerifyMapHelper()
         {
             if (IsMapHelperReady())
-                Puts("FAR Map Helper plugin found. We will be using its API.");
+                Puts("FAR: Map Helper plugin found. We will be using its API.");
             else
-                Puts("FAR Map Helper not loaded. Map Helper API is not available.");
+                Puts("FAR: Map Helper not loaded. Map Helper API is not available.");
         }
 
         private void OnServerInitialized()
@@ -821,7 +831,7 @@ namespace Oxide.Plugins
         // OnAbandonedBaseStarted
         // Signature (Vector3 center, float radius, bool AllowPVP, List<BasePlayer> intruders, List<ulong> intruderIds,
         //            List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
-        private void OnAbandonedBaseStarted(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> intruders, List<ulong> intruderIds, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        private void OnAbandonedBaseStarted(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> intruders, List<ulong> intruderIds, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent, Guid guid)
         {   // check if feature enabled
             var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
             if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
@@ -829,24 +839,29 @@ namespace Oxide.Plugins
             // check for valid position
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
                 return;
+            // scan entity list, get base type and base owner
+            TryGetBaseOwner(guid, entities);
+            // read info about base event from dictionary
+            if (!baseOwners.TryGetValue(guid, out var info))
+                return;
             // resolve owner name from SteamID
-            ulong ownerId = TryGetBaseOwner(eventPos, entities);
-            var ownerName = ownerId == 0UL
+            var ownerName = info.OwnerId == 0UL
                           ? Lang("BasesUnowned", null)
-                          : GetPlayerName(ownerId);
+                          : GetPlayerName(info.OwnerId);
             // get raid properties
             var PvX = allowPVP ? "PVP" : "PVE";
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("AbandonedBaseStartedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, $"{mapSquare} {eventPos.ToString()}");
-            // [Lang_AbandonedBaseStartedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base became raidable at `{3}`",
+            var message = Lang("AbandonedBaseStartedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, $"{mapSquare} {eventPos.ToString()}") +
+                            $" ][ Entities {entities.Count}, Items {CountItemsInEntities(entities)}";
+            // [Lang_AbandonedBaseStartedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} became raidable at `{4}`",
             SendDiscordMessage(webhookURL, message);
         }
         // ################################################################
         // OnAbandonedBaseCompleted
         // Signature (Vector3 center, float radius, bool AllowPVP, List<BasePlayer> intruders, List<ulong> intruderIds,
         //            List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
-        private void OnAbandonedBaseCompleted(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> intruders, List<ulong> intruderIds, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        private void OnAbandonedBaseCompleted(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> intruders, List<ulong> intruderIds, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent, Guid guid)
         {   // check if feature enabled
             var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
             if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
@@ -854,24 +869,28 @@ namespace Oxide.Plugins
             // check for valid position
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
                 return;
-            // resolve owner name from SteamID
-            ulong ownerId = baseOwners.TryGetValue(eventPos, out var cached) ? cached : 0UL;
-            var ownerName = ownerId == 0UL
-                          ? Lang("BasesUnowned", null)
-                          : GetPlayerName(ownerId);
-            // get raid properties
-            var PvX = allowPVP ? "PVP" : "PVE";
-            GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
-            // Assemble message to be sent to Discord
-            var message = Lang("AbandonedBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, $"{mapSquare} {eventPos.ToString()}");
-            // [Lang_AbandonedBaseCompletedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base completed at `{3}`",
-            SendDiscordMessage(webhookURL, message);
+            // skip Discord message if event ended
+            if (baseOwners.TryGetValue(guid, out var info))
+            {
+                if (info.EventEnded) return;
+                // resolve owner name from SteamID
+                var ownerName = info.OwnerId == 0UL
+                              ? Lang("BasesUnowned", null)
+                              : GetPlayerName(info.OwnerId);
+                // get raid properties
+                var PvX = allowPVP ? "PVP" : "PVE";
+                GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
+                // Assemble message to be sent to Discord
+                var message = Lang("AbandonedBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, $"{mapSquare} {eventPos.ToString()}");
+                // [Lang_AbandonedBaseCompletedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} completed at `{4}`",
+                SendDiscordMessage(webhookURL, message);
+            }
         }
         // ################################################################
         // OnAbandonedBaseEnded
         // Signature (Vector3 center, float radius, bool AllowPVP, List<BasePlayer> participants, List<ulong> participantIds,
         //            List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
-        private void OnAbandonedBaseEnded(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> raiders, List<ulong> raidersList, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        private void OnAbandonedBaseEnded(Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> raiders, List<ulong> raidersList, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent, Guid guid)
         {   // check if feature enabled
             var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
             if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
@@ -879,13 +898,17 @@ namespace Oxide.Plugins
             // check for valid position
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
                 return;
+            // Only proceed if there is a tracked abandoned base and event still active
+            if (!baseOwners.TryGetValue(guid, out var info) || info.EventEnded)
+                return;
+            // mark event as ended
+            info.EventEnded = true;
+            // Clean up this abandoned base entry after a delay
+            timer.Once(300f, () => baseOwners.Remove(guid));
             // resolve owner name from SteamID
-            ulong ownerId = baseOwners.TryGetValue(eventPos, out var cached) ? cached : 0UL;
-            var ownerName = ownerId == 0UL
+            var ownerName = info.OwnerId == 0UL
                           ? Lang("BasesUnowned", null)
-                          : GetPlayerName(ownerId);
-            // remove this abandoned base entry from the dictionary
-            baseOwners.Remove(eventPos);
+                          : GetPlayerName(info.OwnerId);
             // build raiders list (player names of participants, comma-separated)
             var raidersNames = string.Join(", ",
                 (raidersList ?? Enumerable.Empty<ulong>())
@@ -897,16 +920,16 @@ namespace Oxide.Plugins
             var PvX = allowPVP ? "PVP" : "PVE";
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("AbandonedBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, $"{mapSquare} {eventPos.ToString()}") +
+            var message = Lang("AbandonedBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, $"{mapSquare} {eventPos.ToString()}") +
                           Lang("BasesRaiders", null, raidersNames);
-            // [Lang_AbandonedBaseEndedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base ended at `{3}`",
+            // [Lang_AbandonedBaseEndedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} ended at `{4}`",
             SendDiscordMessage(webhookURL, message);
         }
         // ################################################################
         // OnAbandonedBaseClaimed
         // Signature (BasePlayer player, Vector3 center, float radius, bool AllowPVP, List<BasePlayer> participants, List<ulong> participantIds,
         //            List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
-        private void OnAbandonedBaseClaimed(BasePlayer player, Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> raiders, List<ulong> raidersList, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent)
+        private void OnAbandonedBaseClaimed(BasePlayer player, Vector3 eventPos, float radius, bool allowPVP, List<BasePlayer> raiders, List<ulong> raidersList, List<BaseEntity> entities, List<BuildingPrivlidge> privs, bool canDropBackpack, bool automatedEvent, bool attackEvent, Guid guid)
         {   // check if feature enabled
             var webhookURL = config?.Webhooks?.BasesWebhook ?? string.Empty;
             if (!(config?.Bases?.Enabled ?? false) || !(config?.Bases?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
@@ -915,7 +938,7 @@ namespace Oxide.Plugins
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
                 return;
             // resolve owner name from SteamID
-            ulong ownerId = baseOwners.TryGetValue(eventPos, out var cached) ? cached : 0UL;
+            ulong ownerId = baseOwners.TryGetValue(guid, out var info) ? info.OwnerId : 0UL;
             var ownerName = ownerId == 0UL
                           ? Lang("BasesUnowned", null)
                           : GetPlayerName(ownerId);
@@ -923,8 +946,8 @@ namespace Oxide.Plugins
             var PvX = allowPVP ? "PVP" : "PVE";
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("AbandonedBaseClaimedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, player.displayName, $"{mapSquare} {eventPos.ToString()}");
-            // [Lang_AbandonedBaseClaimedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** Base was claimed by `{3}` at `{4}`",
+            var message = Lang("AbandonedBaseClaimedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, player.displayName, $"{mapSquare} {eventPos.ToString()}");
+            // [Lang_AbandonedBaseClaimedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} was claimed by `{4}` at `{5}`",
             SendDiscordMessage(webhookURL, message);
         }
 
@@ -953,6 +976,8 @@ namespace Oxide.Plugins
             if (string.IsNullOrWhiteSpace(ownerName) || ownerName == "0" ||
                 string.Equals(ownerName.Trim(), ownerId.ToString(CultureInfo.InvariantCulture), System.StringComparison.Ordinal))
                 ownerName = Lang("BasesUnowned", null);
+            else
+                raidableBaseOwners[GetBaseKey(eventPos)] = ownerId; // memorize base owner
             // get / set raid properties
             var PvX = allowPVP ? "PVP" : "PVE";
             var difficulty = Lang($"BasesDifficulty{mode}", null);
@@ -973,12 +998,16 @@ namespace Oxide.Plugins
             // check for valid position
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
                 return;
+            // try to fetch the ownerId from dictionary
+            var ownerName = raidableBaseOwners.TryGetValue(GetBaseKey(eventPos), out var ownerId) && ownerId != 0UL
+                          ? $"`{GetPlayerName(ownerId)}`'s "
+                          : string.Empty;
             // get / set raid properties
             var PvX = allowPVP ? "PVP" : "PVE";
             var difficulty = Lang($"BasesDifficulty{mode}", null);
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // compose message, send, done
-            var message = Lang("RaidableBaseStartedDiscord", null, GetDiscordTimestamp(), difficulty, PvX, mapSquare);
+            var message = Lang("RaidableBaseStartedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, mapSquare);
             SendDiscordMessage(webhookURL, message);
         }
         // ################################################################
@@ -1018,12 +1047,19 @@ namespace Oxide.Plugins
             // check for valid position
             if (eventPos == Vector3.zero || float.IsNaN(eventPos.x) || float.IsNaN(eventPos.y) || float.IsNaN(eventPos.z))
                 return;
+            // Clean up this raidable base entry after a delay
+            var locationKey = GetBaseKey(eventPos);
+            timer.Once(300f, () => raidableBaseOwners.Remove(locationKey));
+            // try to fetch the ownerId from dictionary
+            var ownerName = raidableBaseOwners.TryGetValue(locationKey, out var ownerId) && ownerId != 0UL
+                          ? $"`{GetPlayerName(ownerId)}`'s "
+                          : string.Empty;
             // get / set raid properties
             var PvX = allowPVP ? "PVP" : "PVE";
             var difficulty = Lang($"BasesDifficulty{mode}", null);
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("RaidableBaseEndedDiscord", null, GetDiscordTimestamp(), difficulty, PvX, mapSquare);
+            var message = Lang("RaidableBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, mapSquare);
             SendDiscordMessage(webhookURL, message);
         }
 
@@ -1329,14 +1365,18 @@ namespace Oxide.Plugins
 
         #region UTILITY METHODS
 
+        // Little helper to round a Vector3 to two decimals: precise enough for AB events
+        private string GetBaseKey(Vector3 pos) => $"{pos.x:F2},{pos.y:F2},{pos.z:F2}";
+
         // Attempts to determine the owner of an abandoned base event by scanning the entity list for Tool Cupboards
         // (all known variants), then falling back to the first non-zero OwnerID found on any other entity if needed.
         // Caches the result in baseOwners for eventPos for future use.
-        private ulong TryGetBaseOwner(Vector3 eventPos, List<BaseEntity> entities)
+        private void TryGetBaseOwner(Guid guid, List<BaseEntity> entities)
         {
             ulong tcOwnerId = 0UL;       // OwnerId from a TC
+            ulong lsOwnerId = 0UL;       // OwnerId from a LegacyShelter
             ulong fallbackOwnerId = 0UL; // OwnerId from any other entity
-            BuildingPrivlidge foundTC = null;
+            string baseKind = "Unknown"; // Determine the kind of base
 
             // Scan entities for TCs (all known variants)
             foreach (var entity in entities)
@@ -1346,27 +1386,64 @@ namespace Oxide.Plugins
                 // Accept known TC variants: vanilla, retro, shockbyte
                 if (entity is BuildingPrivlidge tc)
                 {
-                    foundTC = tc;
                     if (tc.OwnerID != 0UL)
                     {
                         tcOwnerId = tc.OwnerID;
-                        break; // Early exit: TC with owner found (best case)
+                        baseKind = "Base";
                     }
                 }
+                // Tugboats ...
+                else if (entity is Tugboat tug)
+                {
+                    // no need to check OwnerID, none by default
+                    baseKind = "Tugboat";
+                }
+                // Legacy Shelters ....
+                else if (entity is LegacyShelter ls)
+                {
+                    if (ls.OwnerID != 0UL)
+                    {
+                        lsOwnerId = ls.OwnerID;
+                        baseKind = "Shelter";
+                    }
+                }
+                // Fallback / none of the above
                 else if (fallbackOwnerId == 0UL && entity.OwnerID != 0UL)
-                    fallbackOwnerId = entity.OwnerID; // First non-TC owner, keep as fallback
+                    fallbackOwnerId = entity.OwnerID;
+                // check if we can early exit the loop
+                if ((baseKind == "Base" && tcOwnerId != 0) ||
+                    (baseKind == "Shelter" && lsOwnerId != 0) ||
+                    (baseKind == "Tugboat" && fallbackOwnerId != 0))
+                    break;
             }
 
-            ulong ownerId = tcOwnerId != 0UL ? tcOwnerId : fallbackOwnerId;
-            baseOwners[eventPos] = ownerId;
+            // store location (key), ownerId and boolean for base event
+            ulong ownerId = tcOwnerId != 0UL ? tcOwnerId : lsOwnerId != 0UL ? lsOwnerId : fallbackOwnerId;
+            baseOwners[guid] = new AbandonedBaseInfo
+            {
+                OwnerId = ownerId,
+                EventEnded = false,
+                structureType = baseKind
+            };
+        }
 
-            // Optional diagnostics - prefab name is for info only
-            string tcStatus = foundTC != null
-                ? $"TC found ({foundTC.ShortPrefabName}), OwnerID: {tcOwnerId}"
-                : "No TC found";
-            Puts($"[AbandonedBaseOwner] Scan @ {eventPos}: {tcStatus} | Entity fallback: {fallbackOwnerId}");
-
-            return ownerId;
+        // Try to get item count in entity inventories of Abandoned Bases
+        private int CountItemsInEntities(List<BaseEntity> entities)
+        {
+            int totalItems = 0;
+            foreach (var ent in entities)
+            {
+                switch (ent)
+                {
+                    case StorageContainer container when container.inventory != null:
+                        totalItems += container.inventory.itemList?.Count ?? 0; break;
+                    case BaseOven oven when oven.inventory != null:
+                        totalItems += oven.inventory.itemList?.Count ?? 0; break;
+                    case ContainerIOEntity cioe when cioe.inventory != null:
+                        totalItems += cioe.inventory.itemList?.Count ?? 0; break;
+                } // Add more explicit types as needed in future (e.g. VendingMachine)
+            }
+            return totalItems;
         }
 
         // Try to get map square and monument via external API_MapInfo if available

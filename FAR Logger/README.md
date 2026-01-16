@@ -168,7 +168,13 @@ None.
 
 ## Changelog
 
-### 1.3.1 - 2026-01-??
+### 1.3.3 - 2026-01-16
+*   **Adapt to update AB Hooks** Added support for new hooks in Abandoned Bases. Improved Discord output to always mention the base owner if known
+
+### 1.3.2 - 2026-01-14
+*   **Improve AB integration** Added support for detection of different base types, improved output sent to Discord including entity and item count at event start
+
+### 1.3.1 - 2026-01-12
 *   **Code refactor:** Proper integration of Abandoned Bases' hooks, improved wipe detection, simplified timers and data storage. This has been a major clean-up.
 
 ### 1.3.0 - 2025-11-20
