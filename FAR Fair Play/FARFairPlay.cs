@@ -149,18 +149,11 @@ namespace Oxide.Plugins
             if (isOnTugboat)
                 return false;
 
-            // Rule #2: Nearby structure ownership
-            if (ownerId != 0)
-            {
-                // If owned by player or their team → spare
-                if (IsOwnedByPlayerOrTeam(player, ownerId))
-                    return false;
+            // Rule #2: Nearby structure owned by player or team → spare
+            if (IsOwnedByPlayerOrTeam(player, ownerId))
+                return false;
 
-                // Owned by someone else → eligible (kill)
-                return true;
-            }
-
-            // Rule #3: Nothing nearby → eligible (kill)
+            // Rule #3: Nothing nearby or not owned → eligible (kill)
             return true;
         }
 
