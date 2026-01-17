@@ -373,6 +373,29 @@ namespace Oxide.Plugins
             warnAttackerWhileForgivable = enableForgiveness && _config.PvP.warnAttackerWhileForgivable;
         }
 
+        // Ignore fun "weapons" like watergun and waterpistol, catapult ...
+        private static readonly HashSet<string> IgnoreFunWeapons = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "2module_car_spawned.entity",
+            "3module_car_spawned.entity",
+            "4module_car_spawned.entity",
+            "catapult.entity",
+            "grenade.flashbang.deployed",
+            "locomotive.entity",
+            "motorbike",
+            "motorbike_sidecar",
+            "pedalbike",
+            "pedaltrike",
+            "ridablehorse",
+            "snowball.entity",
+            "snowballgun.entity",
+            "watergun.entity",
+            "waterpistol.entity",
+            "workcart.entity",
+            "workcart_aboveground.entity",
+            "workcart_aboveground2.entity"
+        };
+
         #endregion
 
         #region OnEntityTakeDamage
@@ -383,16 +406,9 @@ namespace Oxide.Plugins
             // 1) Sanity + feature gates
             if (victim == null || info == null || info.damageTypes == null) return;
 
-            //   - ignore fun "weapons" watergun and waterpistol, catapult ...
-            if (info?.WeaponPrefab != null)
-            {
-                var w = info.WeaponPrefab.ShortPrefabName;
-                if (w == "catapult.entity" ||
-                    w == "snowball.entity" ||
-                    w == "watergun.entity" ||
-                    w == "waterpistol.entity")
-                    return; // ignore
-            }
+            // - ignore fun "weapons" (no action taken)
+            if (info?.WeaponPrefab != null && IgnoreFunWeapons.Contains(info.WeaponPrefab.ShortPrefabName))
+                return;
 
             // 2) Extract attacker once, then cheapest exits first
             var attacker = info.InitiatorPlayer;
@@ -1088,13 +1104,9 @@ namespace Oxide.Plugins
             // 1) Sanity + feature gates
             if (!enablePveHook || victim == null || info == null) return null;
 
-            // - ignore fun "weapons" watergun and waterpistol, but block damage
-            if (info?.WeaponPrefab != null)
-            {
-                var w = info.WeaponPrefab.ShortPrefabName;
-                if (w == "waterpistol.entity" || w == "watergun.entity")
-                    return false; // block damage
-            }
+            // - ignore fun "weapons" by blocking damage
+            if (info?.WeaponPrefab != null && IgnoreFunWeapons.Contains(info.WeaponPrefab.ShortPrefabName))
+                return false; // block damage
 
             // 2) Tripwire: detect once (no allocs/logging)
             if (!pveHookDetected)
