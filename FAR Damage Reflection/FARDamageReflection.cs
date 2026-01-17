@@ -15,7 +15,7 @@ using UnityEngine;                      // BasePlayer, GameObject, etc.
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Damage Reflection", "miniMe", "1.1.8")]
+    [Info("FAR: Damage Reflection", "miniMe", "1.1.9")]
     [Description("Based on Chernarust's 'ReflectDamage' plugin. Reflects configurable portions of damage back to players, amplifies headshot damage, and optionally applies a bleeding effect to the attacker. Improves basic TC security. Requires specific permission for bypass.")]
 
     public class FARDamageReflection : RustPlugin
@@ -926,8 +926,10 @@ namespace Oxide.Plugins
                         // Explosive/incendiary or TC → temp ban (or kick if disabled)
                         int hours = Math.Max(0, (int)raidTempBanHours);
                         if (enableAutoBan && hours > 0)
-                        {
-                            var reason = Lang("raidAutoBan", attacker.UserIDString, hours);
+                        {   // Only temporary bans through plugin.
+                            // Set enough hours in config so you have time
+                            // to check and perma-ban the player if required.
+                            var reason = Lang("raidAutoBan", null, hours);
                             var command = $"banid {attacker.UserIDString} \"{attackerName}\" \"{reason}\" {hours}";
                             // Try ban
                             try { ConsoleSystem.Run(ConsoleSystem.Option.Server.Quiet(), command); }
@@ -1060,17 +1062,19 @@ namespace Oxide.Plugins
         {
             // Vital: TC or any explosive/incendiary damage → Ban
             if (IsToolCupboard(victim) || IsExplosiveOrIncendiary(info))
-                return RaidSeverity.Ban;
+            {   // cheap team check for damaged entities governed by a player's TC
+                var ownerId = victim.OwnerID; // ownerId of the damaged entity
+                var teamId = info.InitiatorPlayer.currentTeam; // teamId of the attacker
+                var team = ownerId != 0 && teamId != 0 ? RelationshipManager.ServerInstance.FindTeam(teamId) : null;
+                var isSameTeam = team?.members.Contains(ownerId) == true;
+                return isSameTeam ? RaidSeverity.Strike : RaidSeverity.Ban; // be forgiving between teammates
+            }
 
             // Light hits to structural blocks → Ignore
             if (IsBuildingBlock(victim))
                 return RaidSeverity.Ignore;
 
-            // Deployables (non‑explosive) → Strike
-            if (IsDeployable(victim))
-                return RaidSeverity.Strike;
-
-            // Fallback: treat unknown owned things as Strike to be on the safe side
+            // Fallback: treat other owned things as Strike to be on the safe side
             return RaidSeverity.Strike;
         }
 

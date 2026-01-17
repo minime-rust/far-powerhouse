@@ -27,26 +27,6 @@ FAR Damage Reflection is built upon the brilliant foundational work of "ReflectD
 
 This is our most complex and ambitious plugin to date, representing a significant achievement in automated server management.
 
-## Changelog
-
-### 1.1.8 - 2025-11-07
-*   **Refined Fix for 6-Nov Force Wipe:** The previous fix went a bit overboard.
-
-### 1.1.7 - 2025-11-06
-*   **Fix for 6-Nov Force Wipe:** Fixed compile error.
-
-### 1.1.6 - 2025-10-06
-*   **Fixed Auto Ban:** Fixed a small issue where a configured Auto-Ban for raiding wouldn't be applied.
-
-### 1.1.5 - 2025-09-25
-*   **Refined rocket detection:** Refined the way rocket fire is detected. Should now reliably detect rockets shot at another player's base.
-
-### 1.1.4 - 2025-09-22
-*   **Hand-Off to FAR Logger:** Added a method to (optionally) hand-off Discord notifications to FAR Logger's message queue
-
-### 1.1.4 - 2025-09-19
-*   **Improved Auto-Kick:** Adjusted monument detection to avoid unwanted kicks on friendly fire between team members inside monument boundaries.
-
 ## Key Features
 
 **Core Damage Handling:**
@@ -144,6 +124,30 @@ FAR Damage Reflection supports full localization for all in-game messages echoed
 
 ## Permissions
 *   `damagereflection.bypass` - allows players with permission to bypass all restrictions (you usually give staff that permission).
+
+## Changelog
+
+### 1.1.9 - 2026-01-17
+*   **Relaxed temp-ban and ban message:** Tweaked how temporary bans are handled to make vital entity damages between team members a bit more forgiving.
+
+### 1.1.8 - 2025-11-07
+*   **Refined Fix for 6-Nov Force Wipe:** The previous fix went a bit overboard.
+
+### 1.1.7 - 2025-11-06
+*   **Fix for 6-Nov Force Wipe:** Fixed compile error.
+
+### 1.1.6 - 2025-10-06
+*   **Fixed Auto Ban:** Fixed a small issue where a configured Auto-Ban for raiding wouldn't be applied.
+
+### 1.1.5 - 2025-09-25
+*   **Refined rocket detection:** Refined the way rocket fire is detected. Should now reliably detect rockets shot at another player's base.
+
+### 1.1.4 - 2025-09-22
+*   **Hand-Off to FAR Logger:** Added a method to (optionally) hand-off Discord notifications to FAR Logger's message queue
+
+### 1.1.4 - 2025-09-19
+*   **Improved Auto-Kick:** Adjusted monument detection to avoid unwanted kicks on friendly fire between team members inside monument boundaries.
+
 
 ## Configuration
 
