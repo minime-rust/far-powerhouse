@@ -318,9 +318,9 @@ namespace Oxide.Plugins
                 [Lang_AbandonedBaseEndedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} ended at `{4}`",
                 // Raidable Bases
                 [Lang_RaidableBasePurchasedDiscord] = ":homes: {0} `{1}` has paid for the {2} Raidable **{3}** Base (`{4}`) at `{5}`",
-                [Lang_RaidableBaseStartedDiscord] = ":homes: {0} {1}{2} Raidable **{3}** Base spawned at `{4}`",
+                [Lang_RaidableBaseStartedDiscord] = ":homes: {0} `{1}`'s {2} Raidable **{3}** Base spawned at `{4}`",
                 [Lang_RaidableBaseCompletedDiscord] = ":homes: {0} `{1}`'s {2} Raidable **{3}** Base completed at `{4}`",
-                [Lang_RaidableBaseEndedDiscord] = ":homes: {0} {1}{2} Raidable **{3}** Base ended at `{4}`",
+                [Lang_RaidableBaseEndedDiscord] = ":homes: {0} `{1}`'s {2} Raidable **{3}** Base ended at `{4}`",
                 [Lang_BasesDifficulty0] = "Easy",
                 [Lang_BasesDifficulty1] = "Medium",
                 [Lang_BasesDifficulty2] = "Hard",
@@ -971,20 +971,17 @@ namespace Oxide.Plugins
                 return;
             // resolve owner name from SteamID string (compact + safe)
             var ownerName = ulong.TryParse(owner?.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var ownerId) && ownerId != 0UL
-                          ? GetPlayerName(ownerId)
-                          : string.Empty;
-            if (string.IsNullOrWhiteSpace(ownerName) || ownerName == "0" ||
-                string.Equals(ownerName.Trim(), ownerId.ToString(CultureInfo.InvariantCulture), System.StringComparison.Ordinal))
-                ownerName = Lang("BasesUnowned", null);
-            else
-                raidableBaseOwners[GetBaseKey(eventPos)] = ownerId; // memorize base owner
+                          ? GetPlayerName(ownerId)          // base owner found
+                          : Lang("BasesUnowned", null);     // unowned base (e.g. automated event)
+            // memorize base owner
+            if (ownerId != 0UL) raidableBaseOwners[GetBaseKey(eventPos)] = ownerId;
             // get / set raid properties
             var PvX = allowPVP ? "PVP" : "PVE";
             var difficulty = Lang($"BasesDifficulty{mode}", null);
             var raidProfile = string.IsNullOrWhiteSpace(BaseName) ? string.Empty : BaseName.Trim();
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("RaidableBasePurchasedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, raidProfile, mapSquare);
+            var message = Lang("RaidableBasePurchasedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, raidProfile, $"{mapSquare} {eventPos.ToString()}");
             SendDiscordMessage(webhookURL, message);
         }
         // ################################################################
@@ -1000,14 +997,14 @@ namespace Oxide.Plugins
                 return;
             // try to fetch the ownerId from dictionary
             var ownerName = raidableBaseOwners.TryGetValue(GetBaseKey(eventPos), out var ownerId) && ownerId != 0UL
-                          ? $"`{GetPlayerName(ownerId)}`'s "
-                          : string.Empty;
+                          ? GetPlayerName(ownerId)          // base owner found
+                          : Lang("BasesUnowned", null);     // unowned base (e.g. automated event)
             // get / set raid properties
             var PvX = allowPVP ? "PVP" : "PVE";
             var difficulty = Lang($"BasesDifficulty{mode}", null);
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // compose message, send, done
-            var message = Lang("RaidableBaseStartedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, mapSquare);
+            var message = Lang("RaidableBaseStartedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, $"{mapSquare} {eventPos.ToString()}");
             SendDiscordMessage(webhookURL, message);
         }
         // ################################################################
@@ -1026,13 +1023,15 @@ namespace Oxide.Plugins
             var difficulty = Lang($"BasesDifficulty{mode}", null);
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             var ownerName = GetPlayerName(ownerId) ?? Lang("BasesUnowned", null) ?? string.Empty;
+            // memorize base owner
+            if (ownerId != 0UL) raidableBaseOwners[GetBaseKey(eventPos)] = ownerId;
             // build raiders list (player names of participants, comma-separated)
             var raidersNames = string.Join(", ",
                 (raidersList ?? Enumerable.Empty<ulong>())
                                 .Select(GetPlayerName)
                                 .Where(n => !string.IsNullOrWhiteSpace(n)));
             // Assemble message to be sent to Discord
-            var message = Lang("RaidableBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, mapSquare) +
+            var message = Lang("RaidableBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, $"{mapSquare} {eventPos.ToString()}") +
                           Lang("BasesRaiders", null, raidersNames);
             SendDiscordMessage(webhookURL, message);
         }
@@ -1052,14 +1051,14 @@ namespace Oxide.Plugins
             timer.Once(300f, () => raidableBaseOwners.Remove(locationKey));
             // try to fetch the ownerId from dictionary
             var ownerName = raidableBaseOwners.TryGetValue(locationKey, out var ownerId) && ownerId != 0UL
-                          ? $"`{GetPlayerName(ownerId)}`'s "
-                          : string.Empty;
+                          ? GetPlayerName(ownerId)          // base owner found
+                          : Lang("BasesUnowned", null);     // unowned base (e.g. automated event)
             // get / set raid properties
             var PvX = allowPVP ? "PVP" : "PVE";
             var difficulty = Lang($"BasesDifficulty{mode}", null);
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("RaidableBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, mapSquare);
+            var message = Lang("RaidableBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, $"{mapSquare} {eventPos.ToString()}");
             SendDiscordMessage(webhookURL, message);
         }
 
