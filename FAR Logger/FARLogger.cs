@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Logger", "miniMe", "1.3.3")]
+    [Info("FAR: Logger", "miniMe", "1.3.4")]
     [Description("A flexible, Discord-integrated event logger for admins")]
 
     public class FARLogger : CovalencePlugin
@@ -584,7 +584,9 @@ namespace Oxide.Plugins
         // OnFairPlayPlayerRelocated
         // Signature (ulong callerId, ulong sleeperId, Vector3 fromPos, Vector3 toPos)
         private void OnFairPlayPlayerRelocated(ulong callerId, ulong sleeperId, Vector3 fromPos, Vector3 toPos)
-        {   // check if feature enabled
+        {   // debug only - remove after debugging
+            Puts($"[DEBUG] OnFairPlayPlayerRelocated ENTER caller={callerId} sleeper={sleeperId} fromPos={fromPos} toPos={toPos} webHookURL={config?.Webhooks?.FairPlayWebhook ?? string.Empty} fairPlayEnabled={config?.FairPlay?.Enabled ?? false} discordNotify={config?.FairPlay?.DiscordNotify ?? false}");
+            // check if feature enabled
             var webhookURL = config?.Webhooks?.FairPlayWebhook ?? string.Empty;
             if (!(config?.FairPlay?.Enabled ?? false) || !(config?.FairPlay?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
                 return;
@@ -754,19 +756,6 @@ namespace Oxide.Plugins
         {   // ignore empty logs
             if (string.IsNullOrEmpty(condition)) return;
 
-            // Cheap prefilter to cover AB while nivex is adding required hooks to his plugin:
-            if (condition.IndexOf("[abandoned bases]", StringComparison.OrdinalIgnoreCase) >= 0)
-            {   // piggyback on this function for the time being <<< this is an ugly workaround!
-                var webhookURLAB = config?.Webhooks?.BasesWebhook ?? string.Empty;
-                if ((config?.Bases?.Enabled ?? false) &&
-                    (config?.Bases?.DiscordNotify ?? false))
-                {
-                    var messageAB = $":homes: {GetDiscordTimestamp()} {condition}";
-                    NextTick(() => SendDiscordMessage(webhookURLAB, messageAB));
-                }
-                return;
-            }
-
             // Cheap prefilter to avoid regex work on most lines
             if (condition.IndexOf("rejecting connection", StringComparison.OrdinalIgnoreCase) < 0)
                 return;
@@ -881,7 +870,7 @@ namespace Oxide.Plugins
                 var PvX = allowPVP ? "PVP" : "PVE";
                 GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
                 // Assemble message to be sent to Discord
-                var message = Lang("AbandonedBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, $"{mapSquare} {eventPos.ToString()}");
+                var message = Lang("AbandonedBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, mapSquare);
                 // [Lang_AbandonedBaseCompletedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} completed at `{4}`",
                 SendDiscordMessage(webhookURL, message);
             }
@@ -920,7 +909,7 @@ namespace Oxide.Plugins
             var PvX = allowPVP ? "PVP" : "PVE";
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("AbandonedBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, $"{mapSquare} {eventPos.ToString()}") +
+            var message = Lang("AbandonedBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, mapSquare) +
                           Lang("BasesRaiders", null, raidersNames);
             // [Lang_AbandonedBaseEndedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} ended at `{4}`",
             SendDiscordMessage(webhookURL, message);
@@ -946,7 +935,7 @@ namespace Oxide.Plugins
             var PvX = allowPVP ? "PVP" : "PVE";
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("AbandonedBaseClaimedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, player.displayName, $"{mapSquare} {eventPos.ToString()}");
+            var message = Lang("AbandonedBaseClaimedDiscord", null, GetDiscordTimestamp(), ownerName, PvX, info.structureType, player.displayName, mapSquare);
             // [Lang_AbandonedBaseClaimedDiscord] = ":homes: {0} `{1}`'s Abandoned **{2}** {3} was claimed by `{4}` at `{5}`",
             SendDiscordMessage(webhookURL, message);
         }
@@ -981,7 +970,7 @@ namespace Oxide.Plugins
             var raidProfile = string.IsNullOrWhiteSpace(BaseName) ? string.Empty : BaseName.Trim();
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("RaidableBasePurchasedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, raidProfile, $"{mapSquare} {eventPos.ToString()}");
+            var message = Lang("RaidableBasePurchasedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, raidProfile, mapSquare);
             SendDiscordMessage(webhookURL, message);
         }
         // ################################################################
@@ -1022,16 +1011,25 @@ namespace Oxide.Plugins
             var PvX = allowPVP ? "PVP" : "PVE";
             var difficulty = Lang($"BasesDifficulty{mode}", null);
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
-            var ownerName = GetPlayerName(ownerId) ?? Lang("BasesUnowned", null) ?? string.Empty;
-            // memorize base owner
-            if (ownerId != 0UL) raidableBaseOwners[GetBaseKey(eventPos)] = ownerId;
+            // try both the direct ownerId and any prior stored ownerId, for maximum resilience
+            var baseKey = GetBaseKey(eventPos);
+            raidableBaseOwners.TryGetValue(baseKey, out ulong recordedId);
+            var ownerName = GetPlayerName(ownerId);
+            var recordedName = GetPlayerName(recordedId);
+            // compare owner name with our dictionary, add the owner if we don't
+            if (string.IsNullOrWhiteSpace(ownerName))
+                ownerName = !string.IsNullOrWhiteSpace(recordedName)
+                    ? recordedName : Lang("BasesUnowned", null);
+            // memorize this owner if the dictionary didn't have one (unowned/blank)
+            if (recordedId == 0UL && ownerId != 0UL)
+                raidableBaseOwners[baseKey] = ownerId;
             // build raiders list (player names of participants, comma-separated)
             var raidersNames = string.Join(", ",
                 (raidersList ?? Enumerable.Empty<ulong>())
                                 .Select(GetPlayerName)
                                 .Where(n => !string.IsNullOrWhiteSpace(n)));
             // Assemble message to be sent to Discord
-            var message = Lang("RaidableBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, $"{mapSquare} {eventPos.ToString()}") +
+            var message = Lang("RaidableBaseCompletedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, mapSquare) +
                           Lang("BasesRaiders", null, raidersNames);
             SendDiscordMessage(webhookURL, message);
         }
@@ -1058,7 +1056,7 @@ namespace Oxide.Plugins
             var difficulty = Lang($"BasesDifficulty{mode}", null);
             GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
             // Assemble message to be sent to Discord
-            var message = Lang("RaidableBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, $"{mapSquare} {eventPos.ToString()}");
+            var message = Lang("RaidableBaseEndedDiscord", null, GetDiscordTimestamp(), ownerName, difficulty, PvX, mapSquare);
             SendDiscordMessage(webhookURL, message);
         }
 

@@ -168,6 +168,10 @@ None.
 
 ## Changelog
 
+### 1.3.4 - 2026-01-30
+*   **Remove AB workaround** Ripped out the piggyback, now-obsolete, Abandoned Bases workaround where we read the logs
+*   **Fixed RB Discord quirk** Fixed a quirk where admin-spawned Raidable Bases would break the Discord message on completion
+
 ### 1.3.3 - 2026-01-16
 *   **Adapt to update AB Hooks** Added support for new hooks in Abandoned Bases. Improved Discord output to always mention the base owner if known
 
