@@ -127,6 +127,9 @@ FAR Damage Reflection supports full localization for all in-game messages echoed
 
 ## Changelog
 
+### 1.2.0 - 2026-02-16
+*   **Solve paradox if damaged entity is TC:** Solve player gets punished if they attack their own TC.
+
 ### 1.1.9 - 2026-01-17
 *   **Relaxed temp-ban and ban message:** Tweaked how temporary bans are handled to make vital entity damages between team members a bit more forgiving.
 

@@ -15,7 +15,7 @@ using UnityEngine;                      // BasePlayer, GameObject, etc.
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Damage Reflection", "miniMe", "1.1.9")]
+    [Info("FAR: Damage Reflection", "miniMe", "1.2.0")]
     [Description("Based on Chernarust's 'ReflectDamage' plugin. Reflects configurable portions of damage back to players, amplifies headshot damage, and optionally applies a bleeding effect to the attacker. Improves basic TC security. Requires specific permission for bypass.")]
 
     public class FARDamageReflection : RustPlugin
@@ -441,6 +441,12 @@ namespace Oxide.Plugins
 
             // 6) Entity branch: only if feature enabled AND attacker is building-blocked (i.e., not authed)
             ulong ownerId = victim.OwnerID;
+
+            // // solve paradox - authed player damaged their own TC -> do nothing
+            if (victim is BuildingPrivlidge tc && HasAuth(tc, attacker.userID))
+                return;
+
+            // // continue normal handling
             if (ownerId != 0UL &&
                 IsRaidRelevantEntity(victim) &&
                 !IsPlayerInRaidableZone(attacker) &&
@@ -1164,6 +1170,12 @@ namespace Oxide.Plugins
 
             // 6) Branch B: Entity (attacker = player, victim = non-player entity)
             ulong ownerId = victim.OwnerID;
+
+            // // solve paradox - authed player damaged their own TC -> do nothing
+            if (victim is BuildingPrivlidge tc && HasAuth(tc, attacker.userID))
+                return null;        // no opinion → let others/default handle it
+
+            // // continue normal handling
             if (ownerId != 0UL &&
                 IsRaidRelevantEntity(victim) &&
                 !IsPlayerInRaidableZone(attacker) &&
