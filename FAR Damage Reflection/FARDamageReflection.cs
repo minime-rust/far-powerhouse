@@ -386,6 +386,7 @@ namespace Oxide.Plugins
             "motorbike_sidecar",
             "pedalbike",
             "pedaltrike",
+            "playerboat",
             "ridablehorse",
             "snowball.entity",
             "snowballgun.entity",
