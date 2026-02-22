@@ -168,6 +168,9 @@ None.
 
 ## Changelog
 
+### 1.3.5 - 2026-02-22
+*   **Fixed Fair Play Webhook** Fixed a problem with OnFairPlayPlayerRelocated Webhook + smaller adjustments around Fair Play webhooks
+
 ### 1.3.4 - 2026-01-30
 *   **Remove AB workaround** Ripped out the piggyback, now-obsolete, Abandoned Bases workaround where we read the logs
 *   **Fixed RB Discord quirk** Fixed a quirk where admin-spawned Raidable Bases would break the Discord message on completion

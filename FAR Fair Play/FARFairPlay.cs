@@ -6,13 +6,14 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Fair Play", "miniMe", "1.0.0")]
+    [Info("FAR: Fair Play", "miniMe", "1.0.1")]
     [Description("Cleans up non-players after a delay if conditions are met.")]
 
     public class FARFairPlay : RustPlugin
     {
         #region DATA
 
+        const string PermBypass = "farfairplay.bypass";
         readonly Dictionary<ulong, ulong> sleeperClaims = new(); // sleeper → caller (lock + ownership)
         readonly Dictionary<ulong, PendingMove> pendingMoves = new(); // caller → transaction
         class PendingMove
@@ -28,6 +29,7 @@ namespace Oxide.Plugins
 
         void Init()
         {
+            permission.RegisterPermission(PermBypass, this);
             lang.RegisterMessages(new Dictionary<string, string>
             {
                 ["NoSleeper"] = "No sleeper found where you're looking.",
@@ -58,10 +60,11 @@ namespace Oxide.Plugins
                 return;
 
             ulong userId = player.userID;
+            Vector3 userPos = player.transform.position;
 
             // notify interested plugins and drop a line to console log
-            Interface.CallHook("OnFairPlayScheduledForRemoval", userId, player.transform.position);
-            Puts($"[Cleanup] Scheduled {userId} at {player.transform.position.ToString()} for removal in 20 minutes");
+            Interface.CallHook("OnFairPlayScheduledForRemoval", userId, userPos);
+            Puts($"[Cleanup] Scheduled {userId} at {userPos.ToString()} for removal in 20 minutes");
 
             // arm a timer for execution after 20 minutes
             timer.Once(20f * 60f, () =>
@@ -104,10 +107,11 @@ namespace Oxide.Plugins
 
         #region HELPERS
 
-        string L(BasePlayer player, string key, params object[] args)
-        {
-            return string.Format(lang.GetMessage(key, this, player.UserIDString), args);
-        }
+        bool HasBypass(BasePlayer player) =>
+            player != null && permission.UserHasPermission(player.UserIDString, PermBypass);
+
+        string L(BasePlayer player, string key, params object[] args) =>
+            string.Format(lang.GetMessage(key, this, player.UserIDString), args);
 
         private void GetNearbyStructureContext(BasePlayer player, out ulong ownerId, out bool isOnTugboat)
         {
@@ -208,10 +212,11 @@ namespace Oxide.Plugins
 
             Vector3 dest = hit.point;
             dest.y += 0.1f; // safety offset
+            Vector3 sleeperPos = sleeper.transform.position;
 
             // notify interested plugins about relocation, then execute actual relocation
-            Interface.CallHook("OnFairPlayPlayerRelocated", player.userID, sleeper.userID, sleeper.transform.position, dest);
-            Puts($"[Relocate] player [{player.userID}] moved sleeper [{sleeper.userID}] from location {sleeper.transform.position.ToString()} to location {dest.ToString()}");
+            Interface.CallHook("OnFairPlayPlayerRelocated", player.userID, sleeper.userID, sleeperPos, dest);
+            Puts($"[Relocate] player [{player.userID}] moved sleeper [{sleeper.userID}] from location {sleeperPos.ToString()} to location {dest.ToString()}");
             sleeper.Teleport(dest);
 
             pendingMoves.Remove(player.userID);
@@ -232,24 +237,29 @@ namespace Oxide.Plugins
                 return;
             }
 
-            if (target.currentTeam == 0 || target.currentTeam != player.currentTeam)
-            {
-                SendReply(player, L(player, "WrongTeam"));
-                return;
-            }
-
-            BuildingPrivlidge tc = player.GetBuildingPrivilege();
-            if (tc == null || !tc.IsAuthed(player))
-            {
-                SendReply(player, L(player, "NotAuthed"));
-                return;
-            }
-
-            BuildingPrivlidge targetTc = target.GetBuildingPrivilege();
-            if (targetTc == null || targetTc.buildingID != tc.buildingID)
+            // make sure we have a TC
+            BuildingPrivlidge tc = target.GetBuildingPrivilege();
+            if (tc == null)
             {
                 SendReply(player, L(player, "SleeperNotInTC"));
                 return;
+            }
+
+            if (!HasBypass(player))
+            {
+                // check if player is in a team with the sleeper (no bypass)
+                if (target.currentTeam == 0 || target.currentTeam != player.currentTeam)
+                {
+                    SendReply(player, L(player, "WrongTeam"));
+                    return;
+                }
+
+                // check if player is authed on this TC (no bypass)
+                if (!tc.IsAuthed(player))
+                {
+                    SendReply(player, L(player, "NotAuthed"));
+                    return;
+                }
             }
 
             // Is this sleeper already claimed?

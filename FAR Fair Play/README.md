@@ -103,6 +103,10 @@ These allow other plugins to react to cleanup or relocation events.
 
 ## 📝 Changelog
 
+### 1.0.1 — 2026‑02‑22
+- Added bypass permissions
+- Smaller improvements around webhooks
+
 ### 1.0.0 — 2026‑01‑11
 - Initial release
 - Sleeper cleanup logic

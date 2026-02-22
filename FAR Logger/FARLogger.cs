@@ -19,7 +19,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Logger", "miniMe", "1.3.4")]
+    [Info("FAR: Logger", "miniMe", "1.3.5")]
     [Description("A flexible, Discord-integrated event logger for admins")]
 
     public class FARLogger : CovalencePlugin
@@ -573,7 +573,7 @@ namespace Oxide.Plugins
             if (!(config?.FairPlay?.Enabled ?? false) || !(config?.FairPlay?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
                 return;
             // get event location
-            GetMapSquareAndMonument(eventPos, out string mapSquare, out string monument);
+            GetMapSquareAndMonument(eventPos, out string mapSquare, out _);
             // assemble message to be sent to Discord
             var message = $":stopwatch: {GetDiscordTimestamp()} Player `{GetPlayerName(userId)}` [{userId}] at `{mapSquare}` {eventPos.ToString()} has been scheduled for removal in 20 minutes!";
             // add message to queue
@@ -583,16 +583,19 @@ namespace Oxide.Plugins
         // ################################################################
         // OnFairPlayPlayerRelocated
         // Signature (ulong callerId, ulong sleeperId, Vector3 fromPos, Vector3 toPos)
-        private void OnFairPlayPlayerRelocated(ulong callerId, ulong sleeperId, Vector3 fromPos, Vector3 toPos)
-        {   // debug only - remove after debugging
-            Puts($"[DEBUG] OnFairPlayPlayerRelocated ENTER caller={callerId} sleeper={sleeperId} fromPos={fromPos} toPos={toPos} webHookURL={config?.Webhooks?.FairPlayWebhook ?? string.Empty} fairPlayEnabled={config?.FairPlay?.Enabled ?? false} discordNotify={config?.FairPlay?.DiscordNotify ?? false}");
-            // check if feature enabled
+        private void OnFairPlayPlayerRelocated(object arg0, object arg1, object arg2, object arg3)
+        {   // check if feature enabled
             var webhookURL = config?.Webhooks?.FairPlayWebhook ?? string.Empty;
             if (!(config?.FairPlay?.Enabled ?? false) || !(config?.FairPlay?.DiscordNotify ?? false) || string.IsNullOrWhiteSpace(webhookURL))
                 return;
+            // handle hook objects
+            ulong callerId = ulong.Parse(arg0.ToString());
+            ulong sleeperId = ulong.Parse(arg1.ToString());
+            Vector3 fromPos = (arg2 is Vector3) ? (Vector3)arg2 : Vector3.zero;
+            Vector3 toPos = (arg3 is Vector3) ? (Vector3)arg3 : Vector3.zero;
             // get event location
-            GetMapSquareAndMonument(fromPos, out string mapSquareFrom, out string monumentFrom);
-            GetMapSquareAndMonument(toPos, out string mapSquareTo, out string monumentTo);
+            GetMapSquareAndMonument(fromPos, out string mapSquareFrom, out _);
+            GetMapSquareAndMonument(toPos, out string mapSquareTo, out _);
             // get player and sleeper names
             var callerName = GetPlayerName(callerId);
             var sleeperName = GetPlayerName(sleeperId);
