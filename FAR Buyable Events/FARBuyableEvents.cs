@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR Buyable Events", "miniMe", "1.1.0")]
+    [Info("FAR Buyable Events", "miniMe", "1.1.1")]
     [Description("Make Patrol Chopper and Launchsite Bradley buyable with configured item")]
     public class FARBuyableEvents : RustPlugin
     {
@@ -97,7 +97,8 @@ namespace Oxide.Plugins
             {"NoPatrolExists", "There is already a Patrol Chopper on the map. Try again later!"},
             {"PatrolSpawnFail", "Spawning Patrol Chopper failed; no payment was taken."},
             {"PatrolSpawnSuccess", "Patrol Chopper called to your position — 1 {0} consumed. Good luck!"},
-            {"HeliWinner", "{0} dealt the most damage to the Patrol Helicopter. Only {0} (and team) can loot the heli crates for the next {1} minutes."},
+            {"HeliDiscord", ":dagger: {0} `{1}` dealt the most damage `({2})` to the Patrol Helicopter and won the event!"},
+            {"HeliWinner", "{0} dealt the most damage ({1}) to the Patrol Helicopter. Only {0} (and team) can loot the heli crates for the next {2} minutes."},
             {"HeliUnlock", "{0} minutes passed, heli crates can now be looted by everyone."},
             {"HeliNotYourCrate", "This crate is locked!"},
             {"BradleySpawnFail", "Spawning Bradley failed; no payment was taken."},
@@ -426,13 +427,20 @@ namespace Oxide.Plugins
             if (!heliDamage.TryGetValue(heli, out var dmgDict) || dmgDict.Count == 0) return;
 
             var winner = dmgDict.OrderByDescending(kvp => kvp.Value).First().Key;
+            dmgDict.TryGetValue(winner, out var dmg);
             heliDamage.Remove(heli); // remove dead heli immediately
 
             var winnerPlayer = BasePlayer.FindByID(winner);
             var minutes = cfg.HeliCrateLockMinutes;
 
             if (winnerPlayer != null)
-                Server.Broadcast(L("HeliWinner", null, winnerPlayer.displayName, minutes));
+            {
+                // notify Discord if configured (filter checks exist in SendDiscordMessage, keep it stupid here)
+                var message = L("HeliDiscord", null, GetDiscordTimestamp(), winnerPlayer.displayName, (int)dmg);
+                SendDiscordMessage(cfg?.DiscordWebhook, message);
+                // announce winner and inform about time-based locking of helicopter crates
+                Server.Broadcast(L("HeliWinner", null, winnerPlayer.displayName, (int)dmg, minutes));
+            }
 
             // Add winner to recent dead queue for crate assignment
             recentDeadHeliWinners.Enqueue(winner);

@@ -5,6 +5,9 @@ The **FAR Buyable Events** plugin introduces a dynamic new layer of risk and rew
 
 ## Changelog
 
+### 1.1.1 - 2026-02-24
+*   **Added Discord notification:** Added a notification to Discord to inform about the player who dealt the majority of damage to Patrol Chopper
+
 ### 1.1.0 - 2025-09-27
 *   **Added heli loot protection:** Heli loot is now reserved for the player (and team) who dealt the most damage to chopper, then released to everyone
 
