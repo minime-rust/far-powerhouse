@@ -1,0 +1,10 @@
+{
+  "DeathReset": "<color=#cd422b>FAR: Ironman</color> Tu es mort. Ta progression a été réinitialisée.",
+  "StatusTime": "Temps de survie actif: <color=#55aa55>{0:F2} heures</color>",
+  "StatusResist": "Résistance environnementale: <color=#55aa55>{0:F0}%</color>",
+  "OptInSuccess": "<color=#55aa55>Mode Ironman activé !</color> Ta survie est maintenant enregistrée.",
+  "OptOutSuccess": "<color=#cd422b>Mode Ironman désactivé.</color> Tes stats ont été wipe.",
+  "StatusInactive": "Mode Ironman: <color=#grey>Inactif</color> - tape /ironman on pour activer",
+  "StatusActive": "Mode Ironman: <color=#55aa55>Actif</color>",
+  "TopPlayer": "Meilleur survivant: <color=#cd422b>{0}</color> ({1:F2} heures)"
+}

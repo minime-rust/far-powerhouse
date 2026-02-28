@@ -1,0 +1,10 @@
+{
+  "DeathReset": "<color=#cd422b>FAR: Ironman</color> Je bent dood. Je overlevingsvoortgang is gereset.",
+  "StatusTime": "Actieve overlevingstijd: <color=#55aa55>{0:F2} uur</color>",
+  "StatusResist": "Omgevingsweerstand: <color=#55aa55>{0:F0}%</color>",
+  "OptInSuccess": "<color=#55aa55>Ironman-modus actief!</color> Je overleving wordt nu bijgehouden.",
+  "OptOutSuccess": "<color=#cd422b>Ironman-modus uitgeschakeld.</color> Je stats zijn gewiped.",
+  "StatusInactive": "Ironman-modus: <color=#grey>Inactief</color> - typ /ironman on om te starten",
+  "StatusActive": "Ironman-modus: <color=#55aa55>Actief</color>",
+  "TopPlayer": "Beste overlever: <color=#cd422b>{0}</color> ({1:F2} uur)"
+}

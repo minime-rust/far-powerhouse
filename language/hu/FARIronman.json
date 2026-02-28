@@ -1,0 +1,10 @@
+{
+  "DeathReset": "<color=#cd422b>FAR: Ironman</color> Meghaltál. A túlélési haladásod nullázódott.",
+  "StatusTime": "Aktív túlélési idő: <color=#55aa55>{0:F2} óra</color>",
+  "StatusResist": "Környezeti ellenállás: <color=#55aa55>{0:F0}%</color>",
+  "OptInSuccess": "<color=#55aa55>Ironman mód aktív!</color> A túlélésed mostantól követve van.",
+  "OptOutSuccess": "<color=#cd422b>Ironman mód kikapcsolva.</color> A statisztikáid törölve lettek.",
+  "StatusInactive": "Ironman mód: <color=#grey>Inaktív</color> - bekapcsoláshoz: /ironman on",
+  "StatusActive": "Ironman mód: <color=#55aa55>Aktív</color>",
+  "TopPlayer": "Legjobb túlélő: <color=#cd422b>{0}</color> ({1:F2} óra)"
+}

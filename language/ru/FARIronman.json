@@ -1,0 +1,10 @@
+{
+  "DeathReset": "<color=#cd422b>FAR: Ironman</color> Ты погиб. Прогресс выживания сброшен.",
+  "StatusTime": "Время активного выживания: <color=#55aa55>{0:F2} ч.</color>",
+  "StatusResist": "Защита от среды: <color=#55aa55>{0:F0}%</color>",
+  "OptInSuccess": "<color=#55aa55>Режим Ironman активирован!</color> Твое выживание теперь отслеживается.",
+  "OptOutSuccess": "<color=#cd422b>Режим Ironman выключен.</color> Твои статы были вайпнуты.",
+  "StatusInactive": "Режим Ironman: <color=#grey>Неактивен</color> - введи /ironman on для запуска",
+  "StatusActive": "Режим Ironman: <color=#55aa55>Активен</color>",
+  "TopPlayer": "Лучший выживший: <color=#cd422b>{0}</color> ({1:F2} ч.)"
+}

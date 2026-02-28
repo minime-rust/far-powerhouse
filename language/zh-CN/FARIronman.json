@@ -1,0 +1,10 @@
+{
+  "DeathReset": "<color=#cd422b>FAR: Ironman</color> 你死亡了。你的生存进度已重置。",
+  "StatusTime": "当前生存时长: <color=#55aa55>{0:F2} 小时</color>",
+  "StatusResist": "环境伤害抗性: <color=#55aa55>{0:F0}%</color>",
+  "OptInSuccess": "<color=#55aa55>Ironman 模式已开启！</color> 正在追踪你的生存进度。",
+  "OptOutSuccess": "<color=#cd422b>Ironman 模式已禁用。</color> 你的统计数据已清除。",
+  "StatusInactive": "Ironman 模式: <color=#grey>未激活</color> - 输入 /ironman on 开启",
+  "StatusActive": "Ironman 模式: <color=#55aa55>已激活</color>",
+  "TopPlayer": "最强幸存者: <color=#cd422b>{0}</color> ({1:F2} 小时)"
+}
