@@ -23,7 +23,7 @@ As you survive, your body hardens. At the **10-hour cap**, you reach a maximum o
 | **Cold/Heat** | 100% | **50%** | Survival in the snow becomes manageable. |
 | **Animal Bites** | 100% | **50%** | Bears and Wolves are less likely to end a run. |
 | **Hunger/Thirst** | 100% | **50%** | Metabolism slows down, requiring less frequent eating. |
-| **Bullets/Melee** | 100% | **100%** | **No Resistance.** NPCs and Scientists remain lethal. |
+| **Other Damage** | 100% | **100%** | **No Resistance.** NPCs and Scientists remain lethal. |
 
 ### 3. Death
 If you die, your "Survival Time" and "Environmental Resistance" are immediately reset to **0**.
@@ -32,6 +32,7 @@ If you die, your "Survival Time" and "Environmental Resistance" are immediately 
 * `/ironman` — View your current survival time, resistance %, and the server's Top Survivor.
 * `/ironman on` — Opt-in to Ironman mode and start your journey.
 * `/ironman off` — Opt-out and **wipe all your survival stats**.
+* `/ironman top` — Display the Top 5 survivors on the server.
 
 ## 🔑 Permissions
 * `ironman.optin` — This permission is managed automatically by the plugin when players use the chat commands. You do not need to assign it manually.
@@ -49,6 +50,12 @@ This plugin follows the **KISS** principle (Keep It Simple, Stupid). There is no
 * `MaxReduction`: The maximum resistance percentage (Default 0.5 for 50%).
 
 ## 📜 Changelog
+
+### 1.0.1
+* Added `/ironman top` chat command
+* Changed player name determination
+* Code refactor
+
 ### 1.0.0
 * Initial Release Candidate.
 * Linear resistance scaling for environmental damage.

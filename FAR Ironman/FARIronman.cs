@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Ironman", "miniMe", "1.0.0")]
+    [Info("FAR: Ironman", "miniMe", "1.0.1")]
     [Description("The island shapes survivors, not gods. Stay alive long enough to resist the elements. One mistake resets everything.")]
     public class FARIronman : RustPlugin
     {
@@ -33,7 +33,9 @@ namespace Oxide.Plugins
                 ["OptOutSuccess"] = "<color=#cd422b>Ironman Mode Disabled!</color> Your stats have been wiped.",
                 ["StatusInactive"] = "Ironman Mode: <color=#grey>Inactive</color> - opt in by typing /ironman on",
                 ["StatusActive"] = "Ironman Mode: <color=#55aa55>Active</color>",
-                ["TopPlayer"] = "Top Survivor: <color=#cd422b>{0}</color> ({1:F2} hours)"
+                ["TopPlayer"] = "Top Survivor: <color=#cd422b>{0}</color> ({1:F2} hours)",
+                ["TopTitle"] = "<color=#ffff00>--- Top Survivors ---</color>",
+                ["TopItem"] = "<color=#55aa55>{0,6:F2}h</color> - {1}"
             }, this);
         }
 
@@ -42,20 +44,8 @@ namespace Oxide.Plugins
 
         #region Hooks & Logic
 
-        private string GetPlayerName(ulong steamId)
-        {
-            // Check active players first (fastest)
-            BasePlayer player = BasePlayer.FindByID(steamId);
-            if (player != null) return player.displayName;
-
-            // Fallback to Covalence for sleepers/offline players
-            IPlayer iPlayer = covalence.Players.FindPlayerById(steamId.ToString());
-            return iPlayer?.Name ?? "Unknown Survivor";
-        }
-
-        // Detect a server wipe
         private void OnNewSave(string filename)
-        {
+        {   // Detect a server wipe
             Puts("New save detected → Clearing Ironman database for the fresh wipe.");
             survivalTimes = new Dictionary<ulong, float>();
             SaveData(); // Force-write the empty dictionary to disk immediately
@@ -189,10 +179,11 @@ namespace Oxide.Plugins
         {
             string userId = player.UserIDString;
 
-            // 1. Handling Subcommands (on/off)
+            // 1. Handling Subcommands
             if (args.Length > 0)
             {
                 string subCommand = args[0].ToLower();
+
                 if (subCommand == "on")
                 {
                     permission.GrantUserPermission(userId, PermissionOptIn, this);
@@ -204,6 +195,26 @@ namespace Oxide.Plugins
                     permission.RevokeUserPermission(userId, PermissionOptIn);
                     survivalTimes.Remove(player.userID);
                     SendReply(player, GetMsg("OptOutSuccess", userId));
+                    return;
+                }
+
+                // --- /ironman top ---
+                if (subCommand == "top")
+                {
+                    var topList = survivalTimes
+                        .OrderByDescending(x => x.Value)
+                        .Select(x => new { Hours = x.Value, IPlayer = covalence.Players.FindPlayerById(x.Key.ToString()) })
+                        .Where(x => x.IPlayer != null && !x.IPlayer.IsAdmin)
+                        .Take(5)
+                        .ToList();
+
+                    if (topList.Count == 0) return;
+
+                    string topMsg = GetMsg("TopTitle", userId);
+                    foreach (var entry in topList)
+                        topMsg += "\n" + string.Format(GetMsg("TopItem", userId), entry.Hours, entry.IPlayer.Name);
+
+                    SendReply(player, topMsg);
                     return;
                 }
             }
@@ -218,26 +229,21 @@ namespace Oxide.Plugins
                 survivalTimes.TryGetValue(player.userID, out hours);
                 float reduction = Mathf.Min(hours / MaxSurvivalHours, 1.0f) * MaxReduction * 100f;
 
-                message += "\n" + string.Format(GetMsg("StatusTime", userId), hours);
                 message += "\n" + string.Format(GetMsg("StatusResist", userId), reduction);
+                message += "\n" + string.Format(GetMsg("StatusTime", userId), hours);
             }
 
-            // 3. Add Leaderboard to the same message
-            if (survivalTimes.Count > 0)
-            {
-                var topEntry = survivalTimes
-                    .OrderByDescending(x => x.Value)
-                    .FirstOrDefault(x =>
-                    {
-                        IPlayer iPlayer = covalence.Players.FindPlayerById(x.Key.ToString());
-                        return iPlayer != null && !iPlayer.IsAdmin;
-                    });
+            // 3. Add ONLY the #1 Survivor
+            var topOne = survivalTimes
+                .OrderByDescending(x => x.Value)
+                .Select(x => new { Hours = x.Value, IPlayer = covalence.Players.FindPlayerById(x.Key.ToString()) })
+                .Where(x => x.IPlayer != null && !x.IPlayer.IsAdmin)
+                .FirstOrDefault();
 
-                if (topEntry.Key != 0)
-                    message += "\n" + string.Format(GetMsg("TopPlayer", userId), GetPlayerName(topEntry.Key), topEntry.Value);
-            }
+            if (topOne != null) // Note: checking for null now because of the Anonymous Type
+                message += "\n" + string.Format(GetMsg("TopPlayer", userId), topOne.IPlayer.Name, topOne.Hours);
 
-            // 4. Send the single, multi-line message
+            // 4. Send the message
             SendReply(player, message);
         }
         #endregion
