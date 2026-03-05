@@ -9,7 +9,7 @@ namespace Oxide.Plugins
     {
         #region Config
 
-        readonly bool debug = true;
+        readonly bool debug = false;
         private Configuration _config;
 
         private class Configuration
