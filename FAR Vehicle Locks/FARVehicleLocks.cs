@@ -216,7 +216,7 @@ namespace Oxide.Plugins
             if (vehicle == null) return false;
 
             // Traverse all descendants
-            var mounts = Facepunch.Pool.GetList<BaseMountable>();
+            var mounts = Facepunch.Pool.Get<List<BaseMountable>>();
             vehicle.GetComponentsInChildren(mounts);
 
             for (int i = 0; i < mounts.Count; i++)
@@ -224,12 +224,12 @@ namespace Oxide.Plugins
                 var m = mounts[i];
                 if (m != null && IsDriverSeat(m) && m.GetMounted() != null)
                 {
-                    Facepunch.Pool.FreeList(ref mounts);
+                    Facepunch.Pool.FreeUnmanaged(ref mounts);
                     return true;
                 }
             }
 
-            Facepunch.Pool.FreeList(ref mounts);
+            Facepunch.Pool.FreeUnmanaged(ref mounts);
             return false;
         }
 
@@ -272,15 +272,15 @@ namespace Oxide.Plugins
         {
             if (ownerId == 0) return false;
             var pos = vehicle.transform.position;
-            var privs = Facepunch.Pool.GetList<BuildingPrivlidge>();
+            var privs = Facepunch.Pool.Get<List<BuildingPrivlidge>>();
             var radius = Mathf.Clamp(_config.TCRadiusMeters, 1f, 100f); // to prevent a “cover the map” situation
             Vis.Entities(pos, radius, privs, Rust.Layers.Mask.Default | Rust.Layers.Mask.Deployed, QueryTriggerInteraction.Ignore);
             foreach (var tc in privs)
             {
                 if (!tc.IsDestroyed && tc.authorizedPlayers != null && tc.authorizedPlayers.Any(a => a == ownerId))
-                { Facepunch.Pool.FreeList(ref privs); return true; }
+                { Facepunch.Pool.FreeUnmanaged(ref privs); return true; }
             }
-            Facepunch.Pool.FreeList(ref privs);
+            Facepunch.Pool.FreeUnmanaged(ref privs);
             return false;
         }
 

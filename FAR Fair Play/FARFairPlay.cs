@@ -119,7 +119,7 @@ namespace Oxide.Plugins
             isOnTugboat = false;
 
             Vector3 position = player.transform.position;
-            List<BaseEntity> entities = Pool.GetList<BaseEntity>();
+            List<BaseEntity> entities = Pool.Get<List<BaseEntity>>();
 
             Vis.Entities(position, 3.5f, entities);
 
@@ -142,7 +142,7 @@ namespace Oxide.Plugins
                 }
             }
 
-            Pool.FreeList(ref entities);
+            Pool.FreeUnmanaged(ref entities);
         }
 
         private bool IsEligibleForCleanup(BasePlayer player)
