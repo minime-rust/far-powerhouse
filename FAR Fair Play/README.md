@@ -103,6 +103,10 @@ These allow other plugins to react to cleanup or relocation events.
 
 ## 📝 Changelog
 
+### 1.0.2 — 2026‑03‑06
+- Added queue to handle reconnecting players
+- Actual removals only when sleeper in queue
+
 ### 1.0.1 — 2026‑02‑22
 - Added bypass permissions
 - Smaller improvements around webhooks

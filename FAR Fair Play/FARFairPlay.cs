@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Fair Play", "miniMe", "1.0.1")]
+    [Info("FAR: Fair Play", "miniMe", "1.0.2")]
     [Description("Cleans up non-players after a delay if conditions are met.")]
 
     public class FARFairPlay : RustPlugin
@@ -16,6 +16,7 @@ namespace Oxide.Plugins
         const string PermBypass = "farfairplay.bypass";
         readonly Dictionary<ulong, ulong> sleeperClaims = new(); // sleeper → caller (lock + ownership)
         readonly Dictionary<ulong, PendingMove> pendingMoves = new(); // caller → transaction
+        readonly HashSet<ulong> pendingRemovals = new(); // queue removals
         class PendingMove
         {
             public ulong SleeperId;     // SteamID of the sleeper
@@ -66,14 +67,25 @@ namespace Oxide.Plugins
             Interface.CallHook("OnFairPlayScheduledForRemoval", userId, userPos);
             Puts($"[Cleanup] Scheduled {userId} at {userPos.ToString()} for removal in 20 minutes");
 
+            // add sleeper to list
+            pendingRemovals.Add(userId);
+
             // arm a timer for execution after 20 minutes
             timer.Once(20f * 60f, () =>
             {
                 BasePlayer p = BasePlayer.FindSleeping(userId);
-                // note: Die() will only have a target if the player
-                // is still a sleeper, otherwise quit gracefully
-                if (p != null) p.Die();
+                // check whether sleeper is still on our list -> remove
+                if (p != null && pendingRemovals.Remove(userId))
+                    p.Die();
             });
+        }
+
+        private void OnPlayerConnected(BasePlayer player)
+        {
+            if (player == null || player.userID == 0)
+                return;
+            // player reconnected - remove from list
+            pendingRemovals.Remove(player.userID);
         }
 
         #endregion
