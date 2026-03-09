@@ -7,12 +7,11 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-    [Info("FAR: Ironman", "miniMe", "1.0.1")]
+    [Info("FAR: Ironman", "miniMe", "1.0.2")]
     [Description("The island shapes survivors, not gods. Stay alive long enough to resist the elements. One mistake resets everything.")]
     public class FARIronman : RustPlugin
     {
         private Dictionary<ulong, float> survivalTimes = new Dictionary<ulong, float>();
-        private const string PermissionOptIn = "ironman.optin";
         private const float TickInterval = 60f;
 
         // --- Configuration (KISS) ---
@@ -49,24 +48,12 @@ namespace Oxide.Plugins
             Puts("New save detected → Clearing Ironman database for the fresh wipe.");
             survivalTimes = new Dictionary<ulong, float>();
             SaveData(); // Force-write the empty dictionary to disk immediately
-
-            // wipe permission from default group
-            permission.RevokeGroupPermission("default", PermissionOptIn);
-
-            // also wipe permission from each player
-            var users = permission.GetPermissionUsers(PermissionOptIn);
-            if (users != null)
-                foreach (var user in users)
-                    permission.RevokeUserPermission(user.Split(' ')[0], PermissionOptIn);
         }
 
-        void Init()
-        {
-            permission.RegisterPermission(PermissionOptIn, this);
-            // load data file from disk - if server wiped, it will be empty
+        // load data file from disk - if server wiped, it will be empty
+        void Init() =>
             survivalTimes = Interface.Oxide.DataFileSystem.ReadObject<Dictionary<ulong, float>>(Name)
                          ?? new Dictionary<ulong, float>();
-        }
 
         void OnServerInitialized()
         {
@@ -74,8 +61,9 @@ namespace Oxide.Plugins
             timer.Every(TickInterval, UpdateSurvivalTimes);
         }
 
-        bool HasPermission(BasePlayer player) =>
-            player != null && permission.UserHasPermission(player.UserIDString, PermissionOptIn);
+        // replace permission check with simple dictionary lookup
+        bool IsIronman(ulong steamId) =>
+            survivalTimes.ContainsKey(steamId);
 
         private void UpdateSurvivalTimes()
         {
@@ -85,19 +73,17 @@ namespace Oxide.Plugins
                     continue;
 
                 // We don't count time if they are dead, sleeping, or not an Ironman
-                if (player.IsDead() || player.IsSleeping() || !HasPermission(player))
+                if (player.IsDead() || player.IsSleeping() || !IsIronman(player.userID))
                     continue;
 
                 // AFK Idle Check
-                if (player.IdleTime > MaxIdleTime) continue;
+                if (player.IdleTime > MaxIdleTime)
+                    continue;
 
                 // Survival Aggregation
                 float gain = TickInterval / 3600f;
                 if (player.InSafeZone() || player.GetBuildingPrivilege() != null)
                     gain *= BaseTimeMultiplier;
-
-                if (!survivalTimes.ContainsKey(player.userID))
-                    survivalTimes[player.userID] = 0f;
 
                 survivalTimes[player.userID] += gain;
             }
@@ -106,8 +92,8 @@ namespace Oxide.Plugins
         object OnEntityTakeDamage(BaseCombatEntity entity, HitInfo info)
         {
             var player = entity as BasePlayer;
-            if (player == null || info == null || info.damageTypes.Total() <= 0) return null;
-            if (!HasPermission(player)) return null;
+            if (player == null || info == null || info.damageTypes.Total() <= 0 || !IsIronman(player.userID))
+                return null;
 
             float hours;
             if (!survivalTimes.TryGetValue(player.userID, out hours) || hours <= 0) return null;
@@ -136,7 +122,7 @@ namespace Oxide.Plugins
         void OnEntityDeath(BaseCombatEntity entity, HitInfo info)
         {
             BasePlayer player = entity as BasePlayer;
-            if (player == null || !HasPermission(player))
+            if (player == null || !IsIronman(player.userID))
                 return;
 
             survivalTimes[player.userID] = 0f;
@@ -144,7 +130,8 @@ namespace Oxide.Plugins
 
         void OnPlayerRespawned(BasePlayer player)
         {
-            if (player == null || !HasPermission(player)) return;
+            if (player == null || !IsIronman(player.userID))
+                return;
 
             timer.Once(2f, () =>
             {
@@ -165,8 +152,10 @@ namespace Oxide.Plugins
             });
         }
 
-        void OnServerSave() => SaveData();
-        void Unload() => SaveData();
+        void OnServerSave() =>
+            SaveData();
+        void Unload() =>
+            SaveData();
         private void SaveData() =>
             Interface.Oxide.DataFileSystem.WriteObject(Name, survivalTimes);
 
@@ -178,22 +167,29 @@ namespace Oxide.Plugins
         void CmdIronman(BasePlayer player, string command, string[] args)
         {
             string userId = player.UserIDString;
+            ulong steamId = player.userID;
 
-            // 1. Handling Subcommands
             if (args.Length > 0)
             {
                 string subCommand = args[0].ToLower();
-
+                // opt in or out of Ironman Mode
                 if (subCommand == "on")
                 {
-                    permission.GrantUserPermission(userId, PermissionOptIn, this);
+                    if (!IsIronman(steamId))
+                    {
+                        survivalTimes[steamId] = 0f;
+                        SaveData();
+                    }
                     SendReply(player, GetMsg("OptInSuccess", userId));
                     return;
                 }
                 if (subCommand == "off")
                 {
-                    permission.RevokeUserPermission(userId, PermissionOptIn);
-                    survivalTimes.Remove(player.userID);
+                    if (IsIronman(steamId))
+                    {
+                        survivalTimes.Remove(steamId);
+                        SaveData();
+                    }
                     SendReply(player, GetMsg("OptOutSuccess", userId));
                     return;
                 }
@@ -220,13 +216,12 @@ namespace Oxide.Plugins
             }
 
             // 2. Build the Status Message Block
-            bool isOptedIn = HasPermission(player);
+            bool isOptedIn = IsIronman(player.userID);
             string message = isOptedIn ? GetMsg("StatusActive", userId) : GetMsg("StatusInactive", userId);
 
             if (isOptedIn)
             {
-                float hours = 0f;
-                survivalTimes.TryGetValue(player.userID, out hours);
+                float hours = survivalTimes[steamId];
                 float reduction = Mathf.Min(hours / MaxSurvivalHours, 1.0f) * MaxReduction * 100f;
 
                 message += "\n" + string.Format(GetMsg("StatusResist", userId), reduction);
@@ -240,7 +235,7 @@ namespace Oxide.Plugins
                 .Where(x => x.IPlayer != null && !x.IPlayer.IsAdmin)
                 .FirstOrDefault();
 
-            if (topOne != null) // Note: checking for null now because of the Anonymous Type
+            if (topOne != null)
                 message += "\n" + string.Format(GetMsg("TopPlayer", userId), topOne.IPlayer.Name, topOne.Hours);
 
             // 4. Send the message

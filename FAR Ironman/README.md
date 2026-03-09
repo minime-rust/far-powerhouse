@@ -34,22 +34,23 @@ If you die, your "Survival Time" and "Environmental Resistance" are immediately 
 * `/ironman off` — Opt-out and **wipe all your survival stats**.
 * `/ironman top` — Display the Top 5 survivors on the server.
 
-## 🔑 Permissions
-* `ironman.optin` — This permission is managed automatically by the plugin when players use the chat commands. You do not need to assign it manually.
-
 ## 🛠️ Installation
 1.  Download `FARIronman.cs`.
 2.  Place it in your `oxide/plugins` or `carbon/plugins` folder.
 3.  The plugin will generate a data file in `oxide/data/FARIronman.json` to persist stats across restarts.
 
 ## ⚙️ Configuration
-This plugin follows the **KISS** principle (Keep It Simple, Stupid). There is no external `.json` config. If you wish to tweak the balance, edit the constants at the top of the `.cs` file:
+There is no external `.json` config and no permission to handle. If you wish to tweak the balance, edit the constants at the top of the `.cs` file:
 * `MaxIdleTime`: How long before AFK stops the clock.
 * `BaseTimeMultiplier`: The accrual rate inside bases (Default 0.1).
 * `MaxSurvivalHours`: Hours needed to reach max resistance (Default 10).
 * `MaxReduction`: The maximum resistance percentage (Default 0.5 for 50%).
 
 ## 📜 Changelog
+
+### 1.0.2
+* Removed `ironman.optin` permission
+* Ironman Mode is now fully dictionary-based
 
 ### 1.0.1
 * Added `/ironman top` chat command
